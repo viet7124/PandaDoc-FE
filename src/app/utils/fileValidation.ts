@@ -86,21 +86,21 @@ export const validateFile = (file: File, type: keyof typeof FileType): FileValid
  * Validate template file (docx, pdf, pptx, xlsx - Max 50MB)
  */
 export const validateTemplateFile = (file: File): FileValidationResult => {
-  return validateFile(file, FileType.TEMPLATE);
+  return validateFile(file, 'TEMPLATE');
 };
 
 /**
  * Validate avatar image (jpg, png - Max 2MB)
  */
 export const validateAvatarFile = (file: File): FileValidationResult => {
-  return validateFile(file, FileType.AVATAR);
+  return validateFile(file, 'AVATAR');
 };
 
 /**
  * Validate preview image (jpg, png - Max 3MB)
  */
 export const validatePreviewImage = (file: File): FileValidationResult => {
-  return validateFile(file, FileType.PREVIEW_IMAGE);
+  return validateFile(file, 'PREVIEW_IMAGE');
 };
 
 /**
