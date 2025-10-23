@@ -58,7 +58,7 @@ export const ALLOWED_EXTENSIONS = {
 /**
  * Validate file based on type
  */
-export const validateFile = (file: File, type: FileType): FileValidationResult => {
+export const validateFile = (file: File, type: keyof typeof FileType): FileValidationResult => {
   // Check file type
   const allowedTypes = ALLOWED_FILE_TYPES[type.toUpperCase() as keyof typeof ALLOWED_FILE_TYPES];
   if (!allowedTypes.includes(file.type)) {
@@ -143,7 +143,7 @@ export const getFileExtension = (filename: string): string => {
 /**
  * Check if file extension is allowed
  */
-export const isExtensionAllowed = (filename: string, type: FileType): boolean => {
+export const isExtensionAllowed = (filename: string, type: keyof typeof FileType): boolean => {
   const ext = getFileExtension(filename);
   const allowedExts = ALLOWED_EXTENSIONS[type.toUpperCase() as keyof typeof ALLOWED_EXTENSIONS];
   return allowedExts.includes(ext);

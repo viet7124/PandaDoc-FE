@@ -33,39 +33,6 @@ import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 import { validateTemplateFile } from '../../utils/fileValidation';
 
-interface SellerStats {
-  totalEarnings: number;
-  monthlyEarnings: number;
-  totalTemplates: number;
-  totalViews: number;
-  totalDownloads: number;
-  averageRating: number;
-  submittedCount: number;
-  pendingReviewCount: number;
-  approvedCount: number;
-  rejectedCount: number;
-}
-
-interface Template {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  sales: number;
-  views: number;
-  rating: number;
-  status: 'active' | 'pending' | 'rejected';
-  uploadDate: string;
-  thumbnail: string;
-}
-
-interface Sale {
-  id: number;
-  templateName: string;
-  buyer: string;
-  amount: number;
-  date: string;
-}
 
 export default function SellerProfile() {
   const navigate = useNavigate();
@@ -74,7 +41,7 @@ export default function SellerProfile() {
   const [activeTab, setActiveTab] = useState<'templates' | 'earnings' | 'profile'>('templates');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'pending' | 'rejected'>('all');
-  const [dashboardData, setDashboardData] = useState<SellerDashboard | null>(null);
+  const [, setDashboardData] = useState<SellerDashboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Templates state
@@ -208,7 +175,7 @@ export default function SellerProfile() {
       console.log('💰 Earnings summary received in component:', summaryData);
       
       // Check for zero amounts and log warnings
-      payoutsData.forEach((payout, index) => {
+      payoutsData.forEach((payout) => {
         if (payout.amount === 0) {
           console.warn(`⚠️ Payout ${payout.id} has zero amount:`, payout);
         }
@@ -237,9 +204,9 @@ export default function SellerProfile() {
       // Ensure data is an array before setting state
       if (Array.isArray(data)) {
         setTemplates(data);
-      } else if (data && typeof data === 'object' && Array.isArray(data.content)) {
+      } else if (data && typeof data === 'object' && 'content' in data && Array.isArray((data as any).content)) {
         // Handle paginated response
-        setTemplates(data.content);
+        setTemplates((data as any).content);
       } else {
         console.warn('⚠️ API returned non-array data:', data);
         setTemplates([]);
@@ -454,15 +421,6 @@ export default function SellerProfile() {
   };
 
 
-  const monthlyData = [
-    { month: 'Apr', earnings: 1200 },
-    { month: 'May', earnings: 1800 },
-    { month: 'Jun', earnings: 2100 },
-    { month: 'Jul', earnings: 2400 },
-    { month: 'Aug', earnings: 2200 },
-    { month: 'Sep', earnings: 2600 },
-    { month: 'Oct', earnings: 2850 }
-  ];
 
   const filteredTemplates = Array.isArray(templates) ? templates.filter(template => {
     // Skip empty objects or objects without required properties

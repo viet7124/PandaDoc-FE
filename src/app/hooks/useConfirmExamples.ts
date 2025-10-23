@@ -5,9 +5,6 @@
 import { useConfirm } from '../contexts/ConfirmContext';
 
 export const ConfirmExamples = () => {
-  const { confirm } = useConfirm();
-
-
   return null;
 };
 
