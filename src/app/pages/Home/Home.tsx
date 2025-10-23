@@ -1,6 +1,67 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import heroImage from '../../assets/avatar.png';
+
+const url = import.meta.env.VITE_BASE_URL + 'api';
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Author {
+  id: number;
+  username: string;
+}
+
+interface Template {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  fileUrl: string;
+  category: Category;
+  author: Author;
+  status?: 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'REJECTED';
+  images?: string[];
+}
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true'
+  };
+};
 
 export default function Home() {
+  const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPopularTemplates = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get<Template[]>(`${url}/templates/popular`, {
+          headers: getAuthHeaders()
+        });
+        
+        if (response.data && Array.isArray(response.data)) {
+          // Filter to only show published templates
+          const publishedTemplates = response.data.filter(template => template.status === 'PUBLISHED');
+          setPopularTemplates(publishedTemplates.slice(0, 3)); // Get first 3 published templates
+        }
+      } catch (error) {
+        console.error('Error fetching popular templates:', error);
+        // If error, keep empty array
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularTemplates();
+  }, []);
   return (
     <div className="bg-[#EEF0F2] min-h-screen">
       {/* Hero Section */}
@@ -34,41 +95,19 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
-                
-                <button className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-900 bg-white border-2 border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-500/25">
-                  Learn More
-                </button>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative max-w-lg">
-                <label htmlFor="template-search" className="sr-only">Search for templates</label>
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  id="template-search"
-                  type="text"
-                  placeholder="Search templates (e.g., business report)"
-                  className="w-full pl-12 pr-6 py-4 text-base border-2 border-gray-300 rounded-xl bg-white/80 backdrop-blur-sm placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200"
-                  aria-describedby="search-description"
-                />
-                <div id="search-description" className="sr-only">
-                  Search through our library of professional document templates
-                </div>
               </div>
             </div>
 
-            {/* Right Content - Enhanced Panda Illustration */}
+            {/* Right Content - Hero Image */}
             <div className="flex justify-center lg:justify-end">
               <div className="relative group">
                 <div className="absolute -inset-4 bg-gradient-to-r from-green-600 to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
-                <div className="relative w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-gradient-to-br from-blue-400 via-green-400 to-emerald-500 rounded-3xl flex items-end justify-center overflow-hidden shadow-2xl transform group-hover:scale-105 transition-all duration-500">
-                  <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-white rounded-full mb-8 flex items-center justify-center shadow-inner transform group-hover:scale-110 transition-transform duration-500">
-                    <div className="text-6xl sm:text-7xl lg:text-8xl animate-pulse">🐼</div>
-                  </div>
+                <div className="relative w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-gradient-to-br from-blue-400 via-green-400 to-emerald-500 rounded-3xl overflow-hidden shadow-2xl transform group-hover:scale-105 transition-all duration-500">
+                  <img 
+                    src={heroImage} 
+                    alt="PandaDocs Hero" 
+                    className="w-full h-full object-cover"
+                  />
                   {/* Floating elements for visual interest */}
                   <div className="absolute top-8 left-8 w-4 h-4 bg-white/30 rounded-full animate-bounce"></div>
                   <div className="absolute top-16 right-12 w-3 h-3 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
@@ -269,158 +308,105 @@ export default function Home() {
           </div>
 
           {/* Template Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            {/* Template Card 1 */}
-            <article className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-200">
-              <div className="relative h-48 lg:h-56 bg-gradient-to-br from-green-300 via-emerald-300 to-teal-400 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                  <span className="text-xs font-semibold text-gray-700">Popular</span>
-                </div>
-              </div>
-              <div className="p-6 lg:p-8">
-                <h3 className="font-krub text-lg lg:text-xl font-bold text-gray-900 mb-3 group-hover:text-green-700 transition-colors duration-300">
-                  Professional Business Presentation
-                </h3>
-                <p className="font-krub text-sm lg:text-base text-gray-600 mb-6 leading-relaxed">
-                  Modern business presentation template with clean design
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                    </svg>
-                    <span className="font-krub text-xs lg:text-sm font-medium text-gray-500">
-                      Downloaded 1.7k times
-                    </span>
-                  </div>
-                  <Link to="/templates/1" className="inline-flex items-center font-krub text-sm lg:text-base font-semibold text-green-600 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 rounded-lg px-3 py-2">
-                    Use template
-                    <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </article>
-
-            {/* Template Card 2 */}
-            <article className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-200">
-              <div className="relative h-48 lg:h-56 bg-gradient-to-br from-blue-300 via-indigo-300 to-purple-400 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                  <span className="text-xs font-semibold text-gray-700">Trending</span>
-                </div>
-              </div>
-              <div className="p-6 lg:p-8">
-                <h3 className="font-krub text-lg lg:text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-700 transition-colors duration-300">
-                  Creative Marketing Report
-                </h3>
-                <p className="font-krub text-sm lg:text-base text-gray-600 mb-6 leading-relaxed">
-                  Comprehensive marketing analysis template
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                    </svg>
-                    <span className="font-krub text-xs lg:text-sm font-medium text-gray-500">
-                      Downloaded 2.3k times
-                    </span>
-                  </div>
-                  <Link to="/templates/1" className="inline-flex items-center font-krub text-sm lg:text-base font-semibold text-green-600 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 rounded-lg px-3 py-2">
-                    Use template
-                    <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </article>
-
-            {/* Template Card 3 */}
-            <article className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-200">
-              <div className="relative h-48 lg:h-56 bg-gradient-to-br from-orange-300 via-red-300 to-pink-400 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                  <span className="text-xs font-semibold text-gray-700">New</span>
-                </div>
-              </div>
-              <div className="p-6 lg:p-8">
-                <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-3 group-hover:text-red-700 transition-colors duration-300">
-                  Project Proposal Template
-                </h3>
-                <p className="text-sm lg:text-base text-gray-600 mb-6 leading-relaxed">
-                  Professional project proposal outline
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                    </svg>
-                    <span className="text-xs lg:text-sm font-medium text-gray-500">
-                      Downloaded 890 times
-                    </span>
-                  </div>
-                  <button className="inline-flex items-center text-sm lg:text-base font-semibold text-green-600 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 rounded-lg px-3 py-2">
-                    Use template
-                    <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            </div>
+          ) : popularTemplates.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+              {popularTemplates.map((template, index) => {
+                // Define gradient colors for each card
+                const gradients = [
+                  'from-green-300 via-emerald-300 to-teal-400',
+                  'from-blue-300 via-indigo-300 to-purple-400',
+                  'from-orange-300 via-red-300 to-pink-400'
+                ];
+                const hoverColors = [
+                  'group-hover:text-green-700',
+                  'group-hover:text-purple-700',
+                  'group-hover:text-red-700'
+                ];
+                
+                return (
+                  <article key={template.id} className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-200">
+                    <div className={`relative h-48 lg:h-56 bg-gradient-to-br ${gradients[index % 3]} overflow-hidden`}>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                      
+                      {/* Template Preview Image */}
+                      {template.images && template.images.length > 0 ? (
+                        <img
+                          src={template.images[0]}
+                          alt={`${template.title} preview`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to gradient if preview fails to load
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        /* Default fallback when no preview images available */
+                        <div className="absolute inset-4 bg-white rounded-lg shadow-inner p-8 flex items-center justify-center">
+                          <div className="text-center space-y-4">
+                            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                            <div className="text-lg font-bold text-gray-400">No Preview</div>
+                            <div className="text-sm text-gray-500">{template.title}</div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {template.price > 0 && (
+                        <div className="absolute top-4 left-4 bg-yellow-400/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="text-xs font-semibold text-gray-900">Premium</span>
+                        </div>
+                      )}
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {template.category?.name || 'Uncategorized'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-6 lg:p-8">
+                      <h3 className={`font-krub text-lg lg:text-xl font-bold text-gray-900 mb-3 ${hoverColors[index % 3]} transition-colors duration-300`}>
+                        {template.title || 'Untitled Template'}
+                      </h3>
+                      <p className="font-krub text-sm lg:text-base text-gray-600 mb-6 leading-relaxed line-clamp-2">
+                        {template.description || 'No description available'}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col space-y-1">
+                          <span className="text-xs text-gray-500">
+                            by {template.author?.username || 'Unknown Author'}
+                          </span>
+                          <span className="font-bold text-gray-900">
+                            {template.price === 0 ? (
+                              <span className="text-green-600">Free</span>
+                            ) : (
+                              `${template.price.toLocaleString('vi-VN')} đ`
+                            )}
+                          </span>
+                        </div>
+                        <Link to={`/templates/${template.id}`} className="inline-flex items-center font-krub text-sm lg:text-base font-semibold text-green-600 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 rounded-lg px-3 py-2">
+                          Use template
+                          <svg className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-xl text-gray-600">No popular templates available at the moment</p>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black py-20 lg:py-32 overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-blue-600/10"></div>
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-6 leading-tight">
-              Ready to create professional documents?
-            </h2>
-            <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Join thousands of professionals who trust PandaDocs for their document needs
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="group relative inline-flex items-center justify-center px-8 lg:px-10 py-4 lg:py-5 text-lg lg:text-xl font-bold text-gray-900 bg-gradient-to-r from-green-400 to-blue-500 rounded-xl hover:from-green-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-green-500/25">
-                <span>Sign Up for Free</span>
-                <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              
-              <button className="inline-flex items-center justify-center px-8 lg:px-10 py-4 lg:py-5 text-lg lg:text-xl font-semibold text-white border-2 border-gray-600 rounded-xl hover:border-gray-500 hover:bg-white/5 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-500/25">
-                Watch Demo
-                <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Trust indicators */}
-            <div className="pt-12 border-t border-gray-700">
-              <p className="text-sm text-gray-400 mb-6">Trusted by professionals at</p>
-              <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-                <div className="text-gray-500 font-semibold text-lg">Company A</div>
-                <div className="text-gray-500 font-semibold text-lg">Company B</div>
-                <div className="text-gray-500 font-semibold text-lg">Company C</div>
-                <div className="text-gray-500 font-semibold text-lg">Company D</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

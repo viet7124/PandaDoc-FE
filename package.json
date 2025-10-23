@@ -10,7 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@payos/node": "^2.0.3",
+    "@payos/payos-checkout": "^1.0.8",
     "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.12.2",
+    "chart.js": "^4.5.1",
+    "chartjs": "^0.3.24",
+    "lucide-react": "^0.545.0",
+    "payos-checkout": "^1.0.9",
     "preline": "^3.2.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

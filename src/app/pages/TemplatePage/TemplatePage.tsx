@@ -1,54 +1,88 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getTemplates, getCategories } from './services/templateAPI';
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Author {
+  id: number;
+  username: string;
+}
 
 interface Template {
   id: number;
   title: string;
-  category: string;
-  downloads: string;
-  isPremium: boolean;
-  format: string[];
-  industry: string[];
+  description: string;
+  price: number;
+  fileUrl: string;
+  category: Category;
+  author: Author;
+  status?: 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'REJECTED';
 }
 
 export default function TemplatePage() {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Presentations']);
-  const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalElements, setTotalElements] = useState(0);
+  
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedLicenses, setSelectedLicenses] = useState<string[]>([]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // Mock template data
-  const templates: Template[] = [
-    { id: 1, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: true, format: ['PowerPoint', 'PDF'], industry: ['Business', 'Finance'] },
-    { id: 2, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: false, format: ['PowerPoint'], industry: ['Business'] },
-    { id: 3, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: true, format: ['PowerPoint', 'PDF'], industry: ['Business', 'Technology'] },
-    { id: 4, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: false, format: ['PowerPoint'], industry: ['Business'] },
-    { id: 5, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: true, format: ['PowerPoint', 'PDF'], industry: ['Business', 'Healthcare'] },
-    { id: 6, title: 'Business presentation template', category: 'Presentations', downloads: '1.7k times', isPremium: false, format: ['PowerPoint'], industry: ['Business'] },
-  ];
+  // Fetch templates and categories on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        console.log('Starting to fetch data...');
+        
+        const [templatesData, categoriesData] = await Promise.all([
+          getTemplates(),
+          getCategories()
+        ]);
+        
+        console.log('Raw templatesData:', templatesData);
+        console.log('Raw categoriesData:', categoriesData);
+        
+        // Ensure we have arrays before setting state
+        if (templatesData && templatesData.content && Array.isArray(templatesData.content)) {
+          console.log('Setting templates:', templatesData.content.length, 'items');
+          setTemplates(templatesData.content);
+          setTotalElements(templatesData.totalElements || 0);
+        } else {
+          console.warn('Templates data is not valid:', templatesData);
+        }
+        
+        if (categoriesData && Array.isArray(categoriesData)) {
+          console.log('Setting categories:', categoriesData.length, 'items');
+          setCategories(categoriesData);
+        } else {
+          console.warn('Categories data is not valid:', categoriesData);
+        }
+        
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+        console.log('Fetch complete');
+      }
+    };
 
-  const handleCategoryChange = (category: string) => {
+    fetchData();
+  }, []);
+
+  const handleCategoryChange = (categoryId: number) => {
     setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleFormatChange = (format: string) => {
-    setSelectedFormats(prev => 
-      prev.includes(format) 
-        ? prev.filter(f => f !== format)
-        : [...prev, format]
-    );
-  };
-
-  const handleIndustryChange = (industry: string) => {
-    setSelectedIndustries(prev => 
-      prev.includes(industry) 
-        ? prev.filter(i => i !== industry)
-        : [...prev, industry]
+      prev.includes(categoryId) 
+        ? prev.filter(c => c !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
@@ -59,6 +93,23 @@ export default function TemplatePage() {
         : [...prev, license]
     );
   };
+
+  // Filter templates based on selected filters
+  const filteredTemplates = templates.filter(template => {
+    // Only show published templates
+    const isPublished = template.status === 'PUBLISHED';
+    
+    // Category filter
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(template.category.id);
+    
+    // License filter (Free/Premium based on price)
+    const matchesLicense = selectedLicenses.length === 0 || 
+      (selectedLicenses.includes('Free') && template.price === 0) ||
+      (selectedLicenses.includes('Premium') && template.price > 0);
+    
+    return isPublished && matchesCategory && matchesLicense;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,65 +150,44 @@ export default function TemplatePage() {
           {/* Filters Sidebar */}
           <aside className={`lg:w-80 ${isMobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Filters</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+                {(selectedCategories.length > 0 || selectedLicenses.length > 0) && (
+                  <button
+                    onClick={() => {
+                      setSelectedCategories([]);
+                      setSelectedLicenses([]);
+                    }}
+                    className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
 
               {/* Category Filter */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Category</h3>
                 <div className="space-y-3">
-                  {['Presentations', 'Reports', 'Proposals'].map((category) => (
-                    <label key={category} className="flex items-center cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={selectedCategories.includes(category)}
-                        onChange={() => handleCategoryChange(category)}
-                        className="w-5 h-5 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors duration-200"
-                      />
-                      <span className="ml-3 text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                        {category}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Formats Filter */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Formats</h3>
-                <div className="space-y-3">
-                  {['Word Documents', 'Power Points', 'PDF'].map((format) => (
-                    <label key={format} className="flex items-center cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={selectedFormats.includes(format)}
-                        onChange={() => handleFormatChange(format)}
-                        className="w-5 h-5 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors duration-200"
-                      />
-                      <span className="ml-3 text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                        {format}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Industry Filter */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Industry</h3>
-                <div className="space-y-3">
-                  {['Finance', 'Technology', 'Healthcare'].map((industry) => (
-                    <label key={industry} className="flex items-center cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={selectedIndustries.includes(industry)}
-                        onChange={() => handleIndustryChange(industry)}
-                        className="w-5 h-5 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors duration-200"
-                      />
-                      <span className="ml-3 text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                        {industry}
-                      </span>
-                    </label>
-                  ))}
+                  {categories && Array.isArray(categories) && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <label key={category.id} className="flex items-center cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(category.id)}
+                          onChange={() => handleCategoryChange(category.id)}
+                          className="w-5 h-5 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors duration-200"
+                        />
+                        <span className="ml-3 text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                          {category.name}
+                        </span>
+                      </label>
+                    ))
+                  ) : loading ? (
+                    <p className="text-sm text-gray-500">Loading categories...</p>
+                  ) : (
+                    <p className="text-sm text-gray-500">No categories available</p>
+                  )}
                 </div>
               </div>
 
@@ -185,73 +215,125 @@ export default function TemplatePage() {
 
           {/* Main Content */}
           <main className="flex-1">
-            {/* Results Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {templates.length} templates found
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  Showing results for selected filters
-                </p>
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
               </div>
-              
-              <select className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200">
-                <option>Most relevant</option>
-                <option>Most popular</option>
-                <option>Newest first</option>
-                <option>Oldest first</option>
-              </select>
-            </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+                <p className="text-red-800 font-medium">Error: {error}</p>
+              </div>
+            )}
+
+            {/* Results Header */}
+            {!loading && !error && (
+              <>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} found
+                    </h2>
+                    {selectedCategories.length > 0 || selectedLicenses.length > 0 ? (
+                      <p className="text-gray-600 mt-1">
+                        Filtered from {totalElements} total templates
+                      </p>
+                    ) : (
+                      <p className="text-gray-600 mt-1">
+                        Showing all templates
+                      </p>
+                    )}
+                  </div>
+                  
+                  <select className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200">
+                    <option>Most relevant</option>
+                    <option>Most popular</option>
+                    <option>Newest first</option>
+                    <option>Oldest first</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Template Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              {templates.map((template) => (
-                <article key={template.id} className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-green-200 transition-all duration-300">
-                  {/* Template Preview */}
-                  <div className="relative h-48 bg-gradient-to-br from-green-200 via-emerald-200 to-teal-300 flex items-center justify-center">
-                    {template.isPremium && (
-                      <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
-                      </div>
-                    )}
-                    <div className="text-6xl font-bold text-gray-800 opacity-20">
-                      {template.title.split(' ')[0]}
-                    </div>
+            {!loading && !error && (
+              <>
+                {filteredTemplates.length === 0 ? (
+                  <div className="text-center py-16">
+                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No templates found</h3>
+                    <p className="text-gray-600 mb-4">Try adjusting your filters to see more results</p>
                   </div>
-
-                  {/* Template Info */}
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors duration-300">
-                        Professional Business Presentation
-                      </h3>
-                      <p className="text-base font-medium text-gray-600 mb-3">
-                        {template.title}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h8v-2h-8V9h8V7h-8V5h8V3h-8a2 2 0 00-2 2v14a2 2 0 002 2h8v-2h-8z"/>
-                        </svg>
-                        Downloaded {template.downloads}
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    {filteredTemplates.map((template) => (
+                  <article key={template.id} className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-green-200 transition-all duration-300">
+                    {/* Template Preview */}
+                    <div className="relative h-48 bg-gradient-to-br from-green-200 via-emerald-200 to-teal-300 flex items-center justify-center">
+                      {template.price > 0 && (
+                        <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                        </div>
+                      )}
+                      <div className="text-6xl font-bold text-gray-800 opacity-20">
+                        {template.title.split(' ')[0]}
                       </div>
-                      
-                      <Link to={`/templates/${template.id}`} className="inline-flex items-center px-4 py-2 text-sm font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25">
-                        Use template
-                        <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
                     </div>
+
+                    {/* Template Info */}
+                    <div className="p-6">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors duration-300">
+                          {template.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {template.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {template.category.name}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            by {template.author.username}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-sm">
+                          {template.price === 0 ? (
+                            <span className="font-bold text-green-600">FREE</span>
+                          ) : (
+                            <span className="font-bold text-gray-900">
+                              {new Intl.NumberFormat('vi-VN', { 
+                                style: 'currency', 
+                                currency: 'VND' 
+                              }).format(template.price)}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <Link to={`/templates/${template.id}`} className="inline-flex items-center px-4 py-2 text-sm font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25">
+                          View
+                          <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                    ))}
                   </div>
-                </article>
-              ))}
-            </div>
+                )}
+              </>
+            )}
 
             {/* Pagination */}
             <div className="flex justify-center">

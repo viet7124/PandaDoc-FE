@@ -1,9 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { User, LogOut } from "lucide-react";
+import avatarImage from "../../assets/avatar.png";
+import { addRoleChangeListener } from "../../utils/roleEvents";
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSeller, setIsSeller] = useState(false);
   const navigate = useNavigate();
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Check if user is a seller
+  useEffect(() => {
+    const checkSellerStatus = () => {
+      const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+      setIsSeller(userRoles.includes('ROLE_SELLER'));
+    };
+
+    checkSellerStatus();
+    
+    // Listen for role changes (e.g., when user registers as seller or logs in)
+    const removeListener = addRoleChangeListener(checkSellerStatus);
+    
+    return () => {
+      removeListener();
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRoles');
+    navigate('/login');
+    setIsProfileMenuOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileMenuOpen]);
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
@@ -11,10 +59,10 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/">
+            <Link to="/home">
             <div className="flex items-center group cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mr-3 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
-                <span className="text-white text-xl font-bold">🐼</span>
+              <div className="w-10 h-10 rounded-xl mr-3 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
+                <span className="text-white text-xl font-bold"><img src={avatarImage} alt="logo" className="w-10 h-10 rounded-full object-cover" /></span>
               </div>
               <span className="font-krub text-xl lg:text-2xl font-bold text-gray-900 group-hover:text-green-600 transition-colors duration-200">
                 PANDADOCS
@@ -31,12 +79,21 @@ export default function Header() {
             >
               Templates
             </Link>
-            <Link 
-              to="/seller" 
-              className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
-            >
-              Become a Seller
-            </Link>
+            {isSeller ? (
+              <Link 
+                to="/seller-profile" 
+                className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+              >
+                Seller Dashboard
+              </Link>
+            ) : (
+              <Link 
+                to="/seller-register" 
+                className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+              >
+                Become a Seller
+              </Link>
+            )}
             <Link 
               to="/blog" 
               className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
@@ -88,29 +145,36 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Notification Icon */}
-            <button 
-              className="relative p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
-              aria-label="Notifications"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-              </svg>
-              {/* Notification badge */}
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* User Profile */}
-            <Link to="/profile">
-            <button 
-              className="p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
-              aria-label="User profile"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </button>
-            </Link>
+            {/* User Avatar - Always visible with dropdown */}
+            <div ref={profileMenuRef} className="hidden sm:block relative">
+              <button 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="p-2 rounded-full border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+              >
+                <User className="w-6 h-6 text-gray-700" />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors"
+                  >
+                    <User className="w-4 h-4 mr-3" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-3" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
             {/* Mobile menu button */}
             <button 
               className="md:hidden p-2.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
@@ -167,13 +231,23 @@ export default function Header() {
             >
               Templates
             </Link>
-            <Link 
-              to="/seller" 
-              className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Become a Seller
-            </Link>
+            {isSeller ? (
+              <Link 
+                to="/seller-profile" 
+                className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Seller Dashboard
+              </Link>
+            ) : (
+              <Link 
+                to="/seller-register" 
+                className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Become a Seller
+              </Link>
+            )}
             <Link 
               to="/blog" 
               className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
@@ -181,6 +255,28 @@ export default function Header() {
             >
               Blog
             </Link>
+            
+            {/* Mobile Profile & Logout */}
+            <div className="border-t border-gray-200 pt-2 mt-2">
+              <Link 
+                to="/profile" 
+                className="flex items-center px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <User className="w-5 h-5 mr-3" />
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center px-4 py-3 font-krub text-lg font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,16 +1,18 @@
-
 import MainRoutes from './app/routes/MainRoutes';
-import './App.css'
-
+import { ToastProvider } from './app/contexts/ToastContext';
+import { ConfirmProvider } from './app/contexts/ConfirmContext';
+import ToastContainer from './app/components/Toast';
+import './App.css';
 
 function App() {
- 
-
   return (
-    <>
-      <MainRoutes />
-    </>
-  )
+    <ToastProvider>
+      <ConfirmProvider>
+        <MainRoutes />
+        <ToastContainer />
+      </ConfirmProvider>
+    </ToastProvider>
+  );
 }
 
-export default App
+export default App;

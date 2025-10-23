@@ -1,19 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const url = import.meta.env.VITE_BASE_URL + 'api';
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Author {
+  id: number;
+  username: string;
+}
 
 interface Template {
   id: number;
   title: string;
-  category: string;
-  downloads: string;
-  isPremium: boolean;
-  format: string[];
-  industry: string[];
   description: string;
-  author: string;
-  rating: number;
-  price?: number;
+  price: number;
+  fileUrl: string;
+  category: Category;
+  author: Author;
 }
+
+interface TemplatesResponse {
+  content: Template[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  first: boolean;
+}
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true'
+  };
+};
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -21,105 +50,70 @@ export default function SearchPage() {
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
-  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedLicenses, setSelectedLicenses] = useState<string[]>([]);
   
-  const query = searchParams.get('q') || searchParams.get('query') || 'business report';
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const query = searchParams.get('q') || searchParams.get('query') || '';
   const itemsPerPage = 12;
 
-  // Mock search results data
-  const searchResults: Template[] = [
-    {
-      id: 1,
-      title: '2030 Annual Report',
-      category: 'Reports',
-      downloads: '1.7k times',
-      isPremium: false,
-      format: ['PowerPoint', 'PDF'],
-      industry: ['Business', 'Finance'],
-      description: 'Professional Business Presentation',
-      author: 'Global Business Solutions',
-      rating: 4.8,
-      price: 0
-    },
-    {
-      id: 2,
-      title: 'Annual Report - Medical Company',
-      category: 'Reports',
-      downloads: '1.2k times',
-      isPremium: false,
-      format: ['PowerPoint', 'PDF'],
-      industry: ['Healthcare', 'Business'],
-      description: 'Professional Business Presentation',
-      author: 'Medical Corp',
-      rating: 4.9,
-      price: 0
-    },
-    {
-      id: 3,
-      title: 'Annual Report - Blue Design',
-      category: 'Reports',
-      downloads: '2.1k times',
-      isPremium: true,
-      format: ['PowerPoint', 'PDF', 'Word'],
-      industry: ['Business', 'Technology'],
-      description: 'Professional Business Presentation',
-      author: 'Design Studio Pro',
-      rating: 4.7,
-      price: 29.99
-    },
-    {
-      id: 4,
-      title: 'Annual Report - Purple Gradient',
-      category: 'Reports',
-      downloads: '1.5k times',
-      isPremium: false,
-      format: ['PowerPoint'],
-      industry: ['Business', 'Marketing'],
-      description: 'Professional Business Presentation',
-      author: 'Creative Templates',
-      rating: 4.6,
-      price: 0
-    },
-    {
-      id: 5,
-      title: 'Business Presentation - Modern',
-      category: 'Presentations',
-      downloads: '3.2k times',
-      isPremium: true,
-      format: ['PowerPoint', 'PDF'],
-      industry: ['Business', 'Technology'],
-      description: 'Professional Business Presentation',
-      author: 'Modern Designs',
-      rating: 4.9,
-      price: 39.99
-    },
-    {
-      id: 6,
-      title: 'Business Strategy Report',
-      category: 'Reports',
-      downloads: '1.8k times',
-      isPremium: false,
-      format: ['Word', 'PDF'],
-      industry: ['Business', 'Consulting'],
-      description: 'Professional Business Presentation',
-      author: 'Strategy Consultants',
-      rating: 4.5,
-      price: 0
-    }
-  ];
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch templates
+        const templatesResponse = await axios.get<TemplatesResponse>(`${url}/templates`, {
+          headers: getAuthHeaders()
+        });
+        
+        if (templatesResponse.data && Array.isArray(templatesResponse.data.content)) {
+          setTemplates(templatesResponse.data.content);
+        }
+        
+        // Fetch categories
+        const categoriesResponse = await axios.get<Category[]>(`${url}/templates/categories`, {
+          headers: getAuthHeaders()
+        });
+        
+        if (categoriesResponse.data && Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data);
+        }
+        
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        console.error('Error fetching search data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredResults = searchResults.filter(template => {
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(template.category);
-    const matchesFormat = selectedFormats.length === 0 || template.format.some(f => selectedFormats.includes(f));
-    const matchesIndustry = selectedIndustries.length === 0 || template.industry.some(i => selectedIndustries.includes(i));
-    const matchesLicense = selectedLicenses.length === 0 || 
-      (selectedLicenses.includes('Free') && !template.isPremium) ||
-      (selectedLicenses.includes('Premium') && template.isPremium);
+    fetchData();
+  }, []);
+
+  // Filter templates based on search query and filters
+  const filteredResults = templates.filter(template => {
+    // Search query match (title or description)
+    const matchesQuery = query === '' || 
+      template.title.toLowerCase().includes(query.toLowerCase()) ||
+      template.description.toLowerCase().includes(query.toLowerCase());
     
-    return matchesCategory && matchesFormat && matchesIndustry && matchesLicense;
+    // Category filter
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(template.category.id);
+    
+    // License filter (Free/Premium based on price)
+    const matchesLicense = selectedLicenses.length === 0 || 
+      (selectedLicenses.includes('Free') && template.price === 0) ||
+      (selectedLicenses.includes('Premium') && template.price > 0);
+    
+    return matchesQuery && matchesCategory && matchesLicense;
   });
 
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
@@ -128,29 +122,11 @@ export default function SearchPage() {
     currentPage * itemsPerPage
   );
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (categoryId: number) => {
     setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-    setCurrentPage(1);
-  };
-
-  const handleFormatChange = (format: string) => {
-    setSelectedFormats(prev => 
-      prev.includes(format) 
-        ? prev.filter(f => f !== format)
-        : [...prev, format]
-    );
-    setCurrentPage(1);
-  };
-
-  const handleIndustryChange = (industry: string) => {
-    setSelectedIndustries(prev => 
-      prev.includes(industry) 
-        ? prev.filter(i => i !== industry)
-        : [...prev, industry]
+      prev.includes(categoryId) 
+        ? prev.filter(c => c !== categoryId)
+        : [...prev, categoryId]
     );
     setCurrentPage(1);
   };
@@ -166,8 +142,6 @@ export default function SearchPage() {
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
-    setSelectedFormats([]);
-    setSelectedIndustries([]);
     setSelectedLicenses([]);
     setCurrentPage(1);
   };
@@ -175,6 +149,39 @@ export default function SearchPage() {
   const handleBack = () => {
     navigate(-1);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+          <p className="text-gray-600">Loading templates...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Templates</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -196,7 +203,7 @@ export default function SearchPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Filters</h2>
-                {(selectedCategories.length > 0 || selectedFormats.length > 0 || selectedIndustries.length > 0 || selectedLicenses.length > 0) && (
+                {(selectedCategories.length > 0 || selectedLicenses.length > 0) && (
                   <button
                     onClick={clearAllFilters}
                     className="text-sm text-green-600 hover:text-green-700 font-medium"
@@ -211,59 +218,23 @@ export default function SearchPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Category</h3>
                   <div className="space-y-3">
-                    {['Presentations', 'Reports', 'Proposals'].map((category) => (
-                      <label key={category} className="flex items-center cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category)}
-                          onChange={() => handleCategoryChange(category)}
-                          className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
-                        />
-                        <span className="ml-3 text-gray-700 group-hover:text-gray-900 transition-colors">
-                          {category}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Format Filter */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Formats</h3>
-                  <div className="space-y-3">
-                    {['Word Documents', 'Power Points', 'PDF'].map((format) => (
-                      <label key={format} className="flex items-center cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={selectedFormats.includes(format)}
-                          onChange={() => handleFormatChange(format)}
-                          className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
-                        />
-                        <span className="ml-3 text-gray-700 group-hover:text-gray-900 transition-colors">
-                          {format}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Industry Filter */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Industry</h3>
-                  <div className="space-y-3">
-                    {['Finance', 'Technology', 'Healthcare'].map((industry) => (
-                      <label key={industry} className="flex items-center cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={selectedIndustries.includes(industry)}
-                          onChange={() => handleIndustryChange(industry)}
-                          className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
-                        />
-                        <span className="ml-3 text-gray-700 group-hover:text-gray-900 transition-colors">
-                          {industry}
-                        </span>
-                      </label>
-                    ))}
+                    {Array.isArray(categories) && categories.length > 0 ? (
+                      categories.map((category) => (
+                        <label key={category.id} className="flex items-center cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(category.id)}
+                            onChange={() => handleCategoryChange(category.id)}
+                            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                          />
+                          <span className="ml-3 text-gray-700 group-hover:text-gray-900 transition-colors">
+                            {category.name}
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No categories available</p>
+                    )}
                   </div>
                 </div>
 
@@ -296,7 +267,7 @@ export default function SearchPage() {
             <div className="mb-8">
               <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Search Results</h1>
               <p className="text-lg text-gray-600">
-                {filteredResults.length} templates found for "{query}"
+                {filteredResults.length} templates found{query ? ` for "${query}"` : ''}
               </p>
             </div>
 
@@ -365,7 +336,7 @@ export default function SearchPage() {
                     <div className={`relative bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center ${
                       viewMode === 'list' ? 'w-48 h-32 flex-shrink-0' : 'h-48'
                     }`}>
-                      {template.isPremium && (
+                      {template.price > 0 && (
                         <div className="absolute top-3 right-3 bg-gray-900/80 backdrop-blur-sm px-2 py-1 rounded-full">
                           <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -375,8 +346,7 @@ export default function SearchPage() {
                       <div className={`font-bold text-gray-800 opacity-20 ${
                         viewMode === 'list' ? 'text-3xl' : 'text-6xl'
                       }`}>
-                        {template.category === 'Reports' ? '📊' : 
-                         template.category === 'Presentations' ? '📈' : '📋'}
+                        📄
                       </div>
                     </div>
 
@@ -388,27 +358,26 @@ export default function SearchPage() {
                         {template.title}
                       </h3>
 
-                      <p className={`text-gray-600 mb-3 ${viewMode === 'list' ? 'text-sm' : ''}`}>
+                      <p className={`text-gray-600 mb-3 line-clamp-2 ${viewMode === 'list' ? 'text-sm' : ''}`}>
                         {template.description}
                       </p>
 
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>Download {template.downloads}</span>
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                          </svg>
-                          <span>{template.rating}</span>
-                        </div>
+                        <span className="inline-flex items-center px-2 py-1 bg-gray-100 rounded-full">
+                          {template.category.name}
+                        </span>
+                        <span className="text-gray-600">
+                          by {template.author.username}
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          {template.format.slice(0, 2).map((format) => (
-                            <span key={format} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                              {format}
-                            </span>
-                          ))}
+                        <div className="text-lg font-bold text-gray-900">
+                          {template.price === 0 ? (
+                            <span className="text-green-600">Free</span>
+                          ) : (
+                            <span>{template.price.toLocaleString('vi-VN')} đ</span>
+                          )}
                         </div>
                         <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
                           Use template

@@ -20,10 +20,10 @@ export default function SimpleChart({ data, title, type = 'line' }: SimpleChartP
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         <div className="flex space-x-2">
           <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">
-            Tuần
+            Week
           </button>
           <button className="px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 rounded-md">
-            Tháng
+            Month
           </button>
         </div>
       </div>
