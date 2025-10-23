@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type JSX } from 'react';
 
 interface User {
   id: number;

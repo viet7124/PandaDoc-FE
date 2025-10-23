@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, 
-  FileText, 
-  TrendingUp, 
   Upload, 
   Edit, 
   Trash2, 
-  BarChart3,
-  Calendar,
   Star,
   AlertCircle,
   Plus,
@@ -30,7 +26,8 @@ import {
   type SellerPayout,
   type EarningsSummary,
   type SellerProfile,
-  type UpdateSellerProfileData
+  type UpdateSellerProfileData,
+  type SellerTemplate
 } from './services/sellerAPI';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
@@ -81,7 +78,7 @@ export default function SellerProfile() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Templates state
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<SellerTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -256,19 +253,6 @@ export default function SellerProfile() {
     }
   };
 
-  // Combine API data with mock data for now
-  const stats: SellerStats = {
-    totalEarnings: dashboardData?.totalEarnings || 0,
-    monthlyEarnings: 2850.75,
-    totalTemplates: (dashboardData?.submittedCount || 0),
-    totalViews: 45678,
-    totalDownloads: 1234,
-    averageRating: 4.7,
-    submittedCount: dashboardData?.submittedCount || 0,
-    pendingReviewCount: dashboardData?.pendingReviewCount || 0,
-    approvedCount: dashboardData?.approvedCount || 0,
-    rejectedCount: dashboardData?.rejectedCount || 0,
-  };
 
   // Delete handler
   const handleDeleteTemplate = async (templateId: number) => {
@@ -469,13 +453,6 @@ export default function SellerProfile() {
     setProfileErrors({});
   };
 
-  const recentSales: Sale[] = [
-    { id: 1, templateName: 'Marketing Plan Template', buyer: 'John Doe', amount: 34.99, date: '2024-10-17' },
-    { id: 2, templateName: 'Business Proposal Template', buyer: 'Jane Smith', amount: 29.99, date: '2024-10-17' },
-    { id: 3, templateName: 'Financial Report Template', buyer: 'Mike Johnson', amount: 24.99, date: '2024-10-16' },
-    { id: 4, templateName: 'Marketing Plan Template', buyer: 'Sarah Wilson', amount: 34.99, date: '2024-10-16' },
-    { id: 5, templateName: 'Business Proposal Template', buyer: 'Tom Brown', amount: 29.99, date: '2024-10-15' },
-  ];
 
   const monthlyData = [
     { month: 'Apr', earnings: 1200 },
@@ -502,7 +479,6 @@ export default function SellerProfile() {
     return matchesSearch && matchesFilter;
   }) : [];
 
-  const maxEarnings = Math.max(...monthlyData.map(d => d.earnings));
 
   // Upload handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -754,11 +730,9 @@ export default function SellerProfile() {
                     </div>
                   </div>
                   <div className="p-5">
-                    <h4 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">{template.name || template.title || 'Untitled Template'}</h4>
+                    <h4 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">{template.name || 'Untitled Template'}</h4>
                     <p className="text-sm text-gray-500 mb-4">
-                      {typeof template.category === 'object' && template.category?.name 
-                        ? template.category.name 
-                        : template.category || 'Uncategorized'}
+                      {template.category || 'Uncategorized'}
                     </p>
                     
                     <div className="grid grid-cols-3 gap-3 mb-4 py-3 border-t border-b border-gray-100">

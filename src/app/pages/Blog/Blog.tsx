@@ -119,7 +119,7 @@ const blogPosts: BlogPost[] = [
   }
 ];
 
-const categoryIcons: Record<string, JSX.Element> = {
+const categoryIcons: Record<string, React.ReactElement> = {
   'Templates': <FileText className="w-5 h-5" />,
   'Business Tips': <TrendingUp className="w-5 h-5" />,
   'Productivity': <Clock className="w-5 h-5" />,

@@ -16,7 +16,7 @@ export default function StatCard({
   changeType = 'positive', 
   icon, 
   iconBg 
-}: StatCardProps): JSX.Element {
+}: StatCardProps): React.ReactElement {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between">

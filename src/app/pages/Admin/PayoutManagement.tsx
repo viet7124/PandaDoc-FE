@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   getPendingPayouts, 
   getPayoutHistory, 
@@ -351,7 +351,7 @@ export default function PayoutManagement() {
                           <div>
                             <h3 className="text-lg font-medium text-gray-900">{payout.templateTitle}</h3>
                             <p className="text-sm text-gray-600">Seller: {payout.sellerUsername}</p>
-                            <p className="text-sm text-gray-600">Business: {payout.sellerBusinessName}</p>
+                            <p className="text-sm text-gray-600">Business: {payout.sellerUsername}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-semibold text-green-600">
@@ -418,7 +418,7 @@ export default function PayoutManagement() {
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">{payout.templateTitle}</h3>
                           <p className="text-sm text-gray-600">Seller: {payout.sellerUsername}</p>
-                          <p className="text-sm text-gray-600">Business: {payout.sellerBusinessName}</p>
+                          <p className="text-sm text-gray-600">Business: {payout.sellerUsername}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-semibold text-green-600">

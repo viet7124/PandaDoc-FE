@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
   getAllTemplates, 
-  approveTemplate, 
   rejectTemplate, 
   deleteTemplate,
   uploadTemplate,
@@ -211,15 +210,6 @@ export default function TemplateManagement() {
     }
   };
 
-  const handleCreatePayout = async (template: Template) => {
-    setSelectedTemplateForPayout(template);
-    setPayoutForm({
-      agreedPrice: template.price || 0,
-      adminNote: ''
-    });
-    setPayoutErrors({});
-    setShowPayoutModal(true);
-  };
 
   const handlePayoutFormChange = (field: keyof PayoutFormData, value: string | number) => {
     setPayoutForm(prev => ({
@@ -338,7 +328,7 @@ export default function TemplateManagement() {
       const { blob, filename } = await downloadTemplate(template.id);
       
       // Use filename from server (includes correct extension)
-      const downloadFilename = filename || `${template.title}.${template.documentType || 'file'}`;
+      const downloadFilename = filename || `${template.title}.file`;
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -628,7 +618,7 @@ export default function TemplateManagement() {
               <div>
                 <p className="text-sm text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {templates.filter(t => t.status === 'PENDING' || t.status === 'PENDING_REVIEW').length}
+                  {templates.filter(t => t.status === 'PENDING_REVIEW').length}
                 </p>
               </div>
               <div className="bg-yellow-100 p-3 rounded-lg">
@@ -668,7 +658,6 @@ export default function TemplateManagement() {
                 >
                   <option value="ALL">All Status</option>
                   <option value="PENDING_REVIEW">Pending Review</option>
-                  <option value="PENDING">Pending</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="APPROVED">Approved</option>
                   <option value="REJECTED">Rejected</option>
@@ -785,7 +774,7 @@ export default function TemplateManagement() {
                     <div className="pt-4 border-t border-gray-200">
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {(template.status === 'PENDING' || template.status === 'PENDING_REVIEW' || !template.status) && (
+                        {(template.status === 'PENDING_REVIEW' || !template.status) && (
                           <>
                             <button
                               onClick={() => handleApprove(template.id)}

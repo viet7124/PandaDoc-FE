@@ -12,11 +12,11 @@ export interface FileValidationResult {
   error?: string;
 }
 
-export enum FileType {
-  TEMPLATE = 'template',
-  AVATAR = 'avatar',
-  PREVIEW_IMAGE = 'preview_image'
-}
+export const FileType = {
+  TEMPLATE: 'template',
+  AVATAR: 'avatar',
+  PREVIEW_IMAGE: 'preview_image'
+} as const;
 
 // File size constants (in bytes)
 export const MAX_FILE_SIZES = {

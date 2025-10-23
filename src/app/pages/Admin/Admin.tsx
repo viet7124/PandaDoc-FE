@@ -7,7 +7,6 @@ import UserManagement from './UserManagement';
 import TemplateManagement from './TemplateManagement';
 import Revenue from './Revenue';
 import Advertising from './Advertising';
-import Settings from './Settings';
 import Suggestions from './Suggestions';
 
 const getPageTitle = (pathname: string): { title: string; subtitle?: string } => {
@@ -47,7 +46,6 @@ export default function Admin(): JSX.Element {
           <Route path="/templates" element={<TemplateManagement />} />
           <Route path="/revenue" element={<Revenue />} />
           <Route path="/advertising" element={<Advertising />} />
-          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
     </div>

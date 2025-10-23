@@ -220,7 +220,7 @@ export default function Dashboard() {
             title="Pending Payouts"
             value={`${payoutStats.totalPendingAmount.toLocaleString('vi-VN')} VND`}
             change={formatChange(0)}
-            changeType="warning"
+            changeType="negative"
             iconBg="bg-yellow-100"
             icon={
               <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

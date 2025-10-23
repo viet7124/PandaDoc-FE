@@ -60,7 +60,7 @@ export default function PaymentSuccess() {
       const status = await completePayment(orderCode);
       setPaymentStatus(status);
 
-      if (status.paymentStatus === 'PAID' || status.paymentStatus === 'COMPLETED') {
+      if (status.paymentStatus === 'PAID') {
         toast.success('Payment Successful!', 'Template has been added to your library');
         // Redirect to template detail or library after 2 seconds
         setTimeout(() => {
@@ -76,7 +76,7 @@ export default function PaymentSuccess() {
             navigate('/home');
           }
         }, 2000);
-      } else if (status.paymentStatus === 'PENDING' || status.paymentStatus === 'PENDING_PAYMENT') {
+      } else if (status.paymentStatus === 'PENDING') {
         // Auto-retry for pending payments
         if (retryCount < maxRetries) {
           setTimeout(() => {
@@ -161,10 +161,8 @@ export default function PaymentSuccess() {
   const getStatusIcon = () => {
     switch (paymentStatus.paymentStatus) {
       case 'PAID':
-      case 'COMPLETED':
         return <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />;
       case 'PENDING':
-      case 'PENDING_PAYMENT':
         return <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />;
       case 'CANCELLED':
       case 'FAILED':
@@ -177,10 +175,8 @@ export default function PaymentSuccess() {
   const getStatusColor = () => {
     switch (paymentStatus.paymentStatus) {
       case 'PAID':
-      case 'COMPLETED':
         return 'text-green-600';
       case 'PENDING':
-      case 'PENDING_PAYMENT':
         return 'text-yellow-600';
       case 'CANCELLED':
       case 'FAILED':
@@ -193,10 +189,8 @@ export default function PaymentSuccess() {
   const getStatusTitle = () => {
     switch (paymentStatus.paymentStatus) {
       case 'PAID':
-      case 'COMPLETED':
         return 'Payment Successful!';
       case 'PENDING':
-      case 'PENDING_PAYMENT':
         return 'Payment Pending';
       case 'CANCELLED':
         return 'Payment Cancelled';
@@ -243,7 +237,7 @@ export default function PaymentSuccess() {
           </div>
         )}
 
-        {(paymentStatus.paymentStatus === 'PENDING' || paymentStatus.paymentStatus === 'PENDING_PAYMENT') && (
+        {(paymentStatus.paymentStatus === 'PENDING') && (
           <div className="space-y-4">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-yellow-800 text-sm">
