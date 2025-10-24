@@ -2,6 +2,25 @@ import axios from 'axios';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
+// Add axios interceptor to handle OAuth2 redirects
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Check if the error response contains an OAuth2 redirect
+      const redirectUrl = error.response?.headers?.location;
+      if (redirectUrl && redirectUrl.includes('oauth2/authorization/google')) {
+        // Force HTTPS for OAuth2 redirects
+        const httpsRedirectUrl = redirectUrl.replace('http://', 'https://');
+        console.log('🔄 Redirecting to OAuth2 with HTTPS:', httpsRedirectUrl);
+        window.location.href = httpsRedirectUrl;
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 interface Category {
   id: number;
   name: string;
