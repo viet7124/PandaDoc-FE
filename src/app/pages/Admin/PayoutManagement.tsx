@@ -100,7 +100,7 @@ export default function PayoutManagement() {
     };
     
     loadData();
-  }, [fetchPendingPayouts, fetchPayoutHistory, fetchTemplates]);
+  }, []); // Remove callback dependencies to prevent infinite loop
 
   // Handle mark as paid
   const handleMarkAsPaid = async (payoutId: number, sellerUsername: string, amount: number) => {
