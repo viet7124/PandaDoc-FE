@@ -42,7 +42,7 @@ export default function PayoutManagement() {
       console.error('Error fetching pending payouts:', error);
       toast.error('Failed to load pending payouts', 'Please try again later');
     }
-  }, [toast]);
+  }, []); // Remove toast dependency to prevent infinite loop
 
   const fetchPayoutHistory = useCallback(async () => {
     try {
@@ -52,7 +52,7 @@ export default function PayoutManagement() {
       console.error('Error fetching payout history:', error);
       toast.error('Failed to load payout history', 'Please try again later');
     }
-  }, [toast]);
+  }, []); // Remove toast dependency to prevent infinite loop
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -83,7 +83,7 @@ export default function PayoutManagement() {
       console.error('Error fetching templates:', error);
       toast.error('Failed to load templates', 'Please try again later');
     }
-  }, [toast]);
+  }, []); // Remove toast dependency to prevent infinite loop
 
   useEffect(() => {
     console.log('🚀 Payout Management useEffect triggered');
