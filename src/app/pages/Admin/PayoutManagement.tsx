@@ -33,8 +33,8 @@ export default function PayoutManagement() {
   });
   const [payoutErrors, setPayoutErrors] = useState<Record<string, string>>({});
 
-  // Fetch data
-  const fetchPendingPayouts = useCallback(async () => {
+  // Fetch data - using regular functions to avoid infinite loops
+  const fetchPendingPayouts = async () => {
     try {
       const data = await getPendingPayouts();
       setPendingPayouts(data);
@@ -42,9 +42,9 @@ export default function PayoutManagement() {
       console.error('Error fetching pending payouts:', error);
       toast.error('Failed to load pending payouts', 'Please try again later');
     }
-  }, []); // Remove toast dependency to prevent infinite loop
+  };
 
-  const fetchPayoutHistory = useCallback(async () => {
+  const fetchPayoutHistory = async () => {
     try {
       const data = await getPayoutHistory();
       setPayoutHistory(data);
@@ -52,9 +52,9 @@ export default function PayoutManagement() {
       console.error('Error fetching payout history:', error);
       toast.error('Failed to load payout history', 'Please try again later');
     }
-  }, []); // Remove toast dependency to prevent infinite loop
+  };
 
-  const fetchTemplates = useCallback(async () => {
+  const fetchTemplates = async () => {
     try {
       const response = await getAllTemplates();
       console.log('🔍 All templates fetched:', response.content);
@@ -83,7 +83,7 @@ export default function PayoutManagement() {
       console.error('Error fetching templates:', error);
       toast.error('Failed to load templates', 'Please try again later');
     }
-  }, []); // Remove toast dependency to prevent infinite loop
+  };
 
   useEffect(() => {
     console.log('🚀 Payout Management useEffect triggered');
