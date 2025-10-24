@@ -14,6 +14,10 @@ export default function OAuth2Redirect() {
       try {
         setLoading(true);
         
+        console.log('🔍 OAuth2Redirect component loaded');
+        console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 All search params:', Object.fromEntries(searchParams.entries()));
+        
         // Get the token and user info from URL parameters (sent by backend)
         const token = searchParams.get('token');
         const userId = searchParams.get('id');
@@ -21,9 +25,7 @@ export default function OAuth2Redirect() {
         const email = searchParams.get('email');
         const roles = searchParams.get('roles');
 
-        console.log('OAuth2 callback received:', { token, userId, username, email, roles });
-        console.log('Current URL:', window.location.href);
-        console.log('Search params:', Object.fromEntries(searchParams.entries()));
+        console.log('🔍 OAuth2 callback received:', { token, userId, username, email, roles });
         
         // Debug: Log current localStorage state
         console.log('Current localStorage state:', {
