@@ -66,9 +66,11 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to backend OAuth2 endpoint
+    // Redirect to backend OAuth2 endpoint - force HTTPS
     const backendUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8081';
-    const oauth2Url = `${backendUrl}/oauth2/authorization/google`;
+    // Ensure HTTPS for OAuth2 endpoint
+    const httpsBackendUrl = backendUrl.replace('http://', 'https://');
+    const oauth2Url = `${httpsBackendUrl}/oauth2/authorization/google`;
     console.log('Redirecting to OAuth2 URL:', oauth2Url);
     window.location.href = oauth2Url;
   };
