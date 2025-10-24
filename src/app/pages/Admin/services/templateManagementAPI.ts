@@ -79,6 +79,16 @@ const getAuthHeaders = () => {
     console.log('🔐 Token payload:', tokenData);
     console.log('🔐 Token roles/authorities:', tokenData.authorities || tokenData.roles || 'No roles found');
     
+    // Check if user has admin role in token
+    const tokenRoles = tokenData.authorities || tokenData.roles || [];
+    const hasAdminRole = Array.isArray(tokenRoles) && tokenRoles.some((role: string | { authority: string }) => 
+      role === 'ROLE_ADMIN' || (typeof role === 'object' && role.authority === 'ROLE_ADMIN') || role === 'ADMIN'
+    );
+    
+    if (!hasAdminRole) {
+      console.warn('⚠️ User does not have admin role in token. Available roles:', tokenRoles);
+    }
+    
     if (tokenData.exp && tokenData.exp < currentTime) {
       console.error('Token has expired');
       localStorage.removeItem('token');
@@ -427,6 +437,28 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
     return response.data;
   } catch (error) {
     console.error('Error uploading template:', error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error('Upload error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      if (error.response?.status === 401) {
+        throw new Error('Authentication failed. Please login again.');
+      } else if (error.response?.status === 403) {
+        throw new Error('Access denied. Admin privileges required.');
+      } else if (error.response?.status === 500) {
+        throw new Error('Server error during upload. Please try again.');
+      } else if (error.response?.status === 413) {
+        throw new Error('File too large. Please choose a smaller file.');
+      } else if (error.response?.data?.message) {
+        throw new Error(`Upload failed: ${error.response.data.message}`);
+      }
+    }
+    
     throw error;
   }
 };
