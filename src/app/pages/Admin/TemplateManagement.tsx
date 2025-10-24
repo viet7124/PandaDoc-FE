@@ -102,7 +102,7 @@ export default function TemplateManagement() {
   useEffect(() => {
     fetchTemplates();
     fetchCategories();
-  }, [fetchTemplates, fetchCategories]);
+  }, [statusFilter]); // Remove fetchTemplates and fetchCategories from dependencies to prevent infinite loop
 
   const handleApprove = async (id: number) => {
     const template = templates.find(t => t.id === id);

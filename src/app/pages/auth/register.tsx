@@ -232,13 +232,13 @@ export default function Register() {
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
                 I agree to the{' '}
-                <a href="#" className="font-medium text-green-600 hover:text-green-700">
+                <Link to="/terms-of-service" className="font-medium text-green-600 hover:text-green-700">
                   Terms of Service
-                </a>{' '}
+                </Link>{' '}
                 and{' '}
-                <a href="#" className="font-medium text-green-600 hover:text-green-700">
+                <Link to="/privacy-policy" className="font-medium text-green-600 hover:text-green-700">
                   Privacy Policy
-                </a>
+                </Link>
               </label>
             </div>
 

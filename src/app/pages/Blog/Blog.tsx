@@ -16,108 +16,8 @@ interface BlogPost {
 
 const categories = ['All', 'Templates', 'Business Tips', 'Productivity', 'Design', 'Industry Insights'];
 
-const blogPosts: BlogPost[] = [
-  {
-    id: 1,
-    title: "10 Essential Business Templates Every Startup Needs",
-    excerpt: "Starting a business? These essential templates will help you stay organized and professional from day one.",
-    content: "Full article content...",
-    author: "Sarah Johnson",
-    date: "2024-10-15",
-    readTime: "5 min read",
-    category: "Templates",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=500&fit=crop",
-    featured: true
-  },
-  {
-    id: 2,
-    title: "How to Create Professional Documents That Stand Out",
-    excerpt: "Learn the secrets of document design that will make your business materials memorable and effective.",
-    content: "Full article content...",
-    author: "Michael Chen",
-    date: "2024-10-12",
-    readTime: "7 min read",
-    category: "Design",
-    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=500&fit=crop"
-  },
-  {
-    id: 3,
-    title: "Boost Your Productivity with Document Automation",
-    excerpt: "Discover how automating your document workflow can save hours every week and reduce errors.",
-    content: "Full article content...",
-    author: "Emily Rodriguez",
-    date: "2024-10-10",
-    readTime: "6 min read",
-    category: "Productivity",
-    image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&h=500&fit=crop"
-  },
-  {
-    id: 4,
-    title: "The Ultimate Guide to Business Proposals",
-    excerpt: "Master the art of writing winning business proposals with our comprehensive guide and templates.",
-    content: "Full article content...",
-    author: "David Thompson",
-    date: "2024-10-08",
-    readTime: "10 min read",
-    category: "Business Tips",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop"
-  },
-  {
-    id: 5,
-    title: "Top Document Design Trends for 2024",
-    excerpt: "Stay ahead of the curve with these cutting-edge design trends that are shaping business documents.",
-    content: "Full article content...",
-    author: "Jessica Lee",
-    date: "2024-10-05",
-    readTime: "8 min read",
-    category: "Design",
-    image: "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=500&fit=crop"
-  },
-  {
-    id: 6,
-    title: "How Templates Can Save Your Business Time and Money",
-    excerpt: "Calculate the real ROI of using professional templates versus creating documents from scratch.",
-    content: "Full article content...",
-    author: "Robert Martinez",
-    date: "2024-10-03",
-    readTime: "5 min read",
-    category: "Business Tips",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=500&fit=crop"
-  },
-  {
-    id: 7,
-    title: "Creating Consistent Brand Documents",
-    excerpt: "Learn how to maintain brand consistency across all your business documents and communications.",
-    content: "Full article content...",
-    author: "Amanda Foster",
-    date: "2024-10-01",
-    readTime: "6 min read",
-    category: "Design",
-    image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=500&fit=crop"
-  },
-  {
-    id: 8,
-    title: "The Future of Digital Documentation",
-    excerpt: "Explore emerging technologies and trends that are revolutionizing how we create and share documents.",
-    content: "Full article content...",
-    author: "Kevin Park",
-    date: "2024-09-28",
-    readTime: "9 min read",
-    category: "Industry Insights",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=500&fit=crop"
-  },
-  {
-    id: 9,
-    title: "5 Productivity Hacks for Document Management",
-    excerpt: "Simple yet powerful strategies to organize and manage your documents more efficiently.",
-    content: "Full article content...",
-    author: "Lisa Wang",
-    date: "2024-09-25",
-    readTime: "4 min read",
-    category: "Productivity",
-    image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&h=500&fit=crop"
-  }
-];
+// No blog posts available yet - show empty state
+const blogPosts: BlogPost[] = [];
 
 const categoryIcons: Record<string, React.ReactElement> = {
   'Templates': <FileText className="w-5 h-5" />,
@@ -254,8 +154,8 @@ export default function Blog() {
           {regularPosts.length === 0 ? (
             <div className="text-center py-16">
               <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-xl text-gray-500">No articles found</p>
-              <p className="text-gray-400 mt-2">Try adjusting your search or filter</p>
+              <p className="text-xl text-gray-500">Chưa có bài viết nào</p>
+              <p className="text-gray-400 mt-2">Chúng tôi đang chuẩn bị nội dung chất lượng cho bạn</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

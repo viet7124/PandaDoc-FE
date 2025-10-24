@@ -712,8 +712,8 @@ export default function Profile() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">Account Verified</p>
-                    <p className="text-sm text-green-600 font-medium">Premium Member</p>
+                    <p className="text-sm font-bold text-gray-900">Account Status</p>
+                    <p className="text-sm text-green-600 font-medium">Active Member</p>
                   </div>
                 </div>
               </div>

@@ -255,13 +255,13 @@ export default function Login() {
         {/* Footer Links */}
         <p className="mt-8 text-center text-sm text-white drop-shadow-md">
           By signing in, you agree to our{' '}
-          <a href="#" className="font-medium text-green-300 hover:text-green-200 underline">
+          <Link to="/terms-of-service" className="font-medium text-green-300 hover:text-green-200 underline">
             Terms of Service
-          </a>{' '}
+          </Link>{' '}
           and{' '}
-          <a href="#" className="font-medium text-green-300 hover:text-green-200 underline">
+          <Link to="/privacy-policy" className="font-medium text-green-300 hover:text-green-200 underline">
             Privacy Policy
-          </a>
+          </Link>
         </p>
       </div>
     </div>
