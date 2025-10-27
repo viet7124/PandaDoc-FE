@@ -92,8 +92,20 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
       } catch (secondError) {
         console.log('🔄 Alternative endpoint also failed, trying user profile endpoint...');
         
+        // Interface for user profile response
+        interface UserProfileResponse {
+          id?: number;
+          name?: string;
+          businessName?: string;
+          description?: string;
+          bio?: string;
+          bankName?: string;
+          bankAccountNumber?: string;
+          bankAccountHolderName?: string;
+        }
+        
         // Try user profile endpoint as last resort
-        response = await axios.get<any>(`${API_URL}/users/me/profile`, {
+        response = await axios.get<UserProfileResponse>(`${API_URL}/users/me/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'
@@ -302,6 +314,27 @@ export interface SellerTemplate {
   userId?: number;
 }
 
+// Raw template from API before processing
+interface RawSellerTemplate {
+  id: number;
+  name?: string;
+  title?: string;
+  category: string | { id: number; name: string };
+  price: number;
+  sales: number;
+  views: number;
+  rating: number;
+  status: 'active' | 'pending' | 'rejected';
+  uploadDate: string;
+  thumbnail?: string;
+  author?: {
+    id: number;
+    username: string;
+  };
+  authorId?: number;
+  userId?: number;
+}
+
 // Get seller's templates (uses main templates endpoint and filters by current user)
 export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
   try {
@@ -325,7 +358,7 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
     
     console.log('📊 Templates API response:', response.data);
     
-    let allTemplates: SellerTemplate[] = [];
+    let allTemplates: RawSellerTemplate[] = [];
     
     // Handle different response formats
     if (Array.isArray(response.data)) {
@@ -338,23 +371,51 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
       return [];
     }
     
-    // Filter templates by current user (in case backend returns all templates)
-    const userTemplates = allTemplates.filter((template: SellerTemplate) => {
-      // Skip empty objects or objects without required properties
-      if (!template || typeof template !== 'object' || Object.keys(template).length === 0) {
-        console.warn('⚠️ Skipping empty template object:', template);
-        return false;
+    // Helper function to transform raw template to processed template
+    const transformTemplate = (template: RawSellerTemplate): SellerTemplate => {
+      // Ensure name field is populated from title if missing
+      const name = template.name || template.title || 'Untitled Template';
+      
+      // Handle category - extract name if category is an object
+      let categoryStr: string;
+      if (typeof template.category === 'object') {
+        categoryStr = template.category.name || 'Uncategorized';
+      } else {
+        categoryStr = template.category || 'Uncategorized';
       }
       
-      // Check if template belongs to current user
-      return template.author?.id === userId || template.authorId === userId || template.userId === userId;
-    }).map((template: SellerTemplate) => {
-      // Ensure name field is populated from title if missing
-      if (!template.name && template.title) {
-        template.name = template.title;
-      }
-      return template;
-    });
+      // Explicitly construct the returned object to avoid spreading objects
+      return {
+        id: template.id,
+        name: name,
+        title: template.title,
+        category: categoryStr,
+        price: template.price,
+        sales: template.sales,
+        views: template.views,
+        rating: template.rating,
+        status: template.status,
+        uploadDate: template.uploadDate,
+        thumbnail: template.thumbnail,
+        author: template.author,
+        authorId: template.authorId,
+        userId: template.userId
+      };
+    };
+    
+    // Filter templates by current user (in case backend returns all templates)
+    const userTemplates = allTemplates
+      .filter((template: RawSellerTemplate) => {
+        // Skip empty objects or objects without required properties
+        if (!template || typeof template !== 'object' || Object.keys(template).length === 0) {
+          console.warn('⚠️ Skipping empty template object:', template);
+          return false;
+        }
+        
+        // Check if template belongs to current user
+        return template.author?.id === userId || template.authorId === userId || template.userId === userId;
+      })
+      .map(transformTemplate);
     
     console.log('✅ User templates found:', userTemplates.length, 'out of', allTemplates.length);
     console.log('✅ Valid templates:', userTemplates.map(t => ({ id: t.id, name: t.name || 'Untitled' })));
@@ -604,6 +665,28 @@ export interface SellerPayout {
   bankAccountHolderName?: string;
 }
 
+// Raw payout data from API (may have different field names)
+interface RawPayoutData {
+  id: number;
+  sellerId: number;
+  sellerUsername: string;
+  amount?: number;
+  agreedPrice?: number;
+  status: 'PENDING' | 'PAID' | 'CANCELLED';
+  createdAt: string;
+  paidAt?: string;
+  notes?: string;
+  adminNote?: string;
+  templatesSold?: number;
+  templateId?: number;
+  templateTitle?: string;
+  proposedPrice?: number;
+  sellerBusinessName?: string;
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankAccountHolderName?: string;
+}
+
 // Get seller payouts (for sellers to view their payout history)
 export const getSellerPayouts = async (): Promise<SellerPayout[]> => {
   try {
@@ -619,7 +702,7 @@ export const getSellerPayouts = async (): Promise<SellerPayout[]> => {
     console.log('📊 Number of payouts:', response.data.length);
     
     // Map API data to our interface format
-    const mappedPayouts = response.data.map((payout: any) => ({
+    const mappedPayouts: SellerPayout[] = response.data.map((payout: RawPayoutData) => ({
       ...payout,
       amount: payout.agreedPrice || payout.amount || 0, // Use agreedPrice if available, fallback to amount
       templatesSold: payout.templatesSold || 1, // Default to 1 if not provided

@@ -201,16 +201,25 @@ export default function SellerProfile() {
       const data = await getSellerTemplates();
       console.log('✅ Fetched seller templates:', data);
       
-      // Ensure data is an array before setting state
-      if (Array.isArray(data)) {
-        setTemplates(data);
-      } else if (data && typeof data === 'object' && 'content' in data && Array.isArray((data as any).content)) {
-        // Handle paginated response
-        setTemplates((data as any).content);
-      } else {
-        console.warn('⚠️ API returned non-array data:', data);
-        setTemplates([]);
-      }
+      // Additional safety check: ensure category is always a string
+      const safeTemplates = data.map(template => {
+        // If category is still an object, convert it to string
+        let safeCategory: string;
+        if (typeof template.category === 'object' && template.category !== null) {
+          safeCategory = (template.category as { name: string }).name || 'Uncategorized';
+        } else if (typeof template.category === 'string') {
+          safeCategory = template.category;
+        } else {
+          safeCategory = 'Uncategorized';
+        }
+        
+        return {
+          ...template,
+          category: safeCategory
+        };
+      });
+      
+      setTemplates(safeTemplates);
     } catch (error) {
       console.error('❌ Error fetching seller templates:', error);
       toast.error('Error', 'Failed to load templates');
@@ -690,7 +699,7 @@ export default function SellerProfile() {
                   <div className="p-5">
                     <h4 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">{template.name || 'Untitled Template'}</h4>
                     <p className="text-sm text-gray-500 mb-4">
-                      {template.category || 'Uncategorized'}
+                      {typeof template.category === 'string' ? template.category : 'Uncategorized'}
                     </p>
                     
                     <div className="grid grid-cols-3 gap-3 mb-4 py-3 border-t border-b border-gray-100">
