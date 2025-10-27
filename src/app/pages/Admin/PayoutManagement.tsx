@@ -145,10 +145,11 @@ export default function PayoutManagement() {
 
   // Handle create payout
   const handleCreatePayout = (template: Template) => {
-    // Check if template already has a payout in history
-    const hasExistingPayout = payoutHistory.some(payout => payout.templateId === template.id);
+    // Check if template already has a payout in history OR pending payouts
+    const hasExistingPayoutInHistory = payoutHistory.some(payout => payout.templateId === template.id);
+    const hasExistingPayoutPending = pendingPayouts.some(payout => payout.templateId === template.id);
     
-    if (hasExistingPayout) {
+    if (hasExistingPayoutInHistory || hasExistingPayoutPending) {
       toast.error('Duplicate Payout', 'This template already has a payout. Cannot create duplicate payout.');
       return;
     }
@@ -199,14 +200,27 @@ export default function PayoutManagement() {
     try {
       setProcessing(selectedTemplate.id);
       await createTemplatePayout(selectedTemplate.id, payoutForm);
-      await fetchPendingPayouts();
+      
+      // Refresh ALL data to ensure pending payouts list is updated
+      await Promise.all([
+        fetchPendingPayouts(),
+        fetchPayoutHistory(),
+        fetchTemplates()
+      ]);
+      
       setShowCreatePayoutModal(false);
       setSelectedTemplate(null);
       setPayoutForm({ agreedPrice: 0, adminNote: '' });
       toast.success('Payout Created', `Payout of ${payoutForm.agreedPrice.toLocaleString()} VND has been created for ${selectedTemplate.title}`);
     } catch (error) {
       console.error('Error creating payout:', error);
-      toast.error('Failed to create payout', 'An error occurred while creating the payout');
+      
+      // Extract error message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to create payout. Please try again.';
+      
+      toast.error('Failed to create payout', errorMessage);
     } finally {
       setProcessing(null);
     }
@@ -277,7 +291,10 @@ export default function PayoutManagement() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templates.map((template) => {
-                  const hasExistingPayout = payoutHistory.some(payout => payout.templateId === template.id);
+                  // Check for existing payout in both history and pending
+                  const hasExistingPayoutInHistory = payoutHistory.some(payout => payout.templateId === template.id);
+                  const hasExistingPayoutPending = pendingPayouts.some(payout => payout.templateId === template.id);
+                  const hasExistingPayout = hasExistingPayoutInHistory || hasExistingPayoutPending;
                   
                   return (
                     <div key={template.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
