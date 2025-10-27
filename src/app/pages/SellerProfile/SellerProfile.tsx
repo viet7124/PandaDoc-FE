@@ -253,7 +253,13 @@ export default function SellerProfile() {
       setDashboardData(data);
     } catch (error) {
       console.error('Error deleting template:', error);
-      toast.error('Delete Failed', 'Failed to delete template. Please try again.');
+      
+      // Extract error message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to delete template. Please try again.';
+      
+      toast.error('Delete Failed', errorMessage);
     } finally {
       setDeletingId(null);
     }

@@ -601,6 +601,35 @@ export const deleteTemplate = async (templateId: number): Promise<void> => {
     return response.data;
   } catch (error) {
     console.error('❌ Error deleting template:', error);
+    
+    // Handle axios errors with better messages
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const message = error.response.data?.message || error.response.data?.error || error.message;
+        
+        if (status === 400 && message?.includes('Only published templates can be deleted')) {
+          throw new Error('This template cannot be deleted. Only published templates can be deleted. For pending or rejected templates, please contact support.');
+        } else if (status === 403) {
+          throw new Error('You do not have permission to delete this template.');
+        } else if (status === 404) {
+          throw new Error('Template not found.');
+        } else if (status === 401) {
+          throw new Error('Please log in again to continue.');
+        } else {
+          throw new Error(message || 'Failed to delete template. Please try again.');
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        throw new Error('Network error. Please check your connection and try again.');
+      } else {
+        // Something else happened
+        throw new Error('An error occurred while deleting the template.');
+      }
+    }
+    
+    // For non-axios errors, re-throw
     throw error;
   }
 };
