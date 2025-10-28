@@ -84,7 +84,7 @@ export default function TemplateDetail() {
   const fetchTemplate = async () => {
     try {
       setLoading(true);
-      const data = await getTemplateById(Number(id));
+      let data = await getTemplateById(Number(id));
       console.log('📋 Template Data in TemplateDetail:', data);
       console.log('⭐ Template Rating:', data.rating, 'Type:', typeof data.rating);
       console.log('📊 Template Review Count:', data.reviewCount, 'Type:', typeof data.reviewCount);
@@ -98,7 +98,8 @@ export default function TemplateDetail() {
           const previewImages = await getPreviewImages(Number(id));
           console.log('📸 Fetched Preview Images separately:', previewImages);
           if (previewImages && previewImages.length > 0) {
-            data.images = previewImages;
+            // Create a new object instead of mutating the original
+            data = { ...data, images: previewImages };
             console.log('✅ Updated template with preview images:', data.images);
           }
         } catch (error) {
@@ -126,27 +127,6 @@ export default function TemplateDetail() {
       setLoadingReviews(true);
       const data = await getTemplateReviews(Number(id));
       setReviews(data);
-      
-      // Calculate rating and review count from reviews data
-      if (data && data.length > 0) {
-        const totalRating = data.reduce((sum, review) => sum + (review.rating || 0), 0);
-        const averageRating = totalRating / data.length;
-        const reviewCount = data.length;
-        
-        console.log('📊 Calculated Rating from Reviews:', {
-          totalRating,
-          averageRating,
-          reviewCount,
-          reviews: data.length
-        });
-        
-        // Update template with calculated rating
-        setTemplate(prev => prev ? {
-          ...prev,
-          rating: averageRating,
-          reviewCount: reviewCount
-        } : null);
-      }
     } catch (error) {
       console.error('Error fetching reviews:', error);
       // Don't show error toast for reviews - they're optional
