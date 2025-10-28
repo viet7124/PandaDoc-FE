@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyEmail } from './services/authAPI';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -9,6 +9,7 @@ function useQuery(): URLSearchParams {
 
 export default function VerifyEmail() {
   const { success, error } = useToast();
+  const navigate = useNavigate();
   const query = useQuery();
   const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error' | 'awaiting'>('idle');
   const [email, setEmail] = useState<string>('');
@@ -37,6 +38,11 @@ export default function VerifyEmail() {
         await verifyEmail(token);
         setStatus('success');
         success('Email verified', 'Your email has been successfully verified.');
+        
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } catch (e) {
         setStatus('error');
         const message = e instanceof Error ? e.message : 'Verification failed. The link may be invalid or expired.';
@@ -44,7 +50,7 @@ export default function VerifyEmail() {
       }
     };
     verify();
-  }, [query, success, error, hasAttempted]);
+  }, [query, success, error, hasAttempted, navigate]);
 
   return (
     <div className="min-h-[50vh] flex items-center justify-center px-4 py-12">
@@ -63,7 +69,16 @@ export default function VerifyEmail() {
           </>
         )}
         {status === 'success' && (
-          <p className="text-green-700">Your email has been verified. You may close this window.</p>
+          <div>
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-green-700 mb-2">Email Verified Successfully!</h2>
+            <p className="text-gray-600 mb-4">Your email has been verified. Redirecting to login page...</p>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+          </div>
         )}
         {status === 'error' && (
           <div>
