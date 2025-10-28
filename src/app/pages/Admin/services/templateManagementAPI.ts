@@ -454,8 +454,8 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
 
     const response = await axios.post<Template>(`${url}/templates/upload`, formData, {
       headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'multipart/form-data'
+        ...getAuthHeaders()
+        // Don't set Content-Type for FormData, let browser set it with boundary
       }
     });
     
@@ -469,17 +469,24 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
+        requestHeaders: error.config?.headers
       });
       
-      if (error.response?.status === 401) {
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        if (errorMessage && errorMessage.includes('multipart')) {
+          throw new Error('Invalid request format. Please ensure the file is properly attached.');
+        }
+        throw new Error('Invalid file format or missing required fields.');
+      } else if (error.response?.status === 401) {
         throw new Error('Authentication failed. Please login again.');
       } else if (error.response?.status === 403) {
         throw new Error('Access denied. Admin privileges required.');
+      } else if (error.response?.status === 413) {
+        throw new Error('File too large. Maximum file size is 50MB.');
       } else if (error.response?.status === 500) {
         throw new Error('Server error during upload. Please try again.');
-      } else if (error.response?.status === 413) {
-        throw new Error('File too large. Please choose a smaller file.');
       } else if (error.response?.data?.message) {
         throw new Error(`Upload failed: ${error.response.data.message}`);
       }
