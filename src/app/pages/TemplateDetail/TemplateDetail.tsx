@@ -204,6 +204,12 @@ export default function TemplateDetail() {
   };
 
   const handleShowCollectionModal = async () => {
+    // Only allow adding to collection if the template is in the user's library
+    if (!template) return;
+    if (!(template.isPurchased || isPurchasedByUser)) {
+      toast.info('Purchase required', 'You need to own this template before adding it to a collection.');
+      return;
+    }
     setShowCollectionModal(true);
     await fetchCollections();
   };
@@ -709,16 +715,29 @@ export default function TemplateDetail() {
                     Download
                   </button>
                   
-                  <button
-                    onClick={handleShowCollectionModal}
-                    disabled={isProcessing}
-                    className="inline-flex items-center justify-center px-4 py-3 text-base font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:border-green-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
-                    </svg>
-                    Add to collection
-                  </button>
+                  {(template.isPurchased || isPurchasedByUser) ? (
+                    <button
+                      onClick={handleShowCollectionModal}
+                      disabled={isProcessing}
+                      className="inline-flex items-center justify-center px-4 py-3 text-base font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:border-green-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                      </svg>
+                      Add to collection
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => toast.info('Purchase required', 'Buy or add the free template to your library first.')}
+                      className="inline-flex items-center justify-center px-4 py-3 text-base font-semibold text-gray-400 bg-white border-2 border-gray-200 rounded-lg cursor-not-allowed"
+                      disabled
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                      </svg>
+                      Purchase to collect
+                    </button>
+                  )}
                 </div>
                 
                 <button 
