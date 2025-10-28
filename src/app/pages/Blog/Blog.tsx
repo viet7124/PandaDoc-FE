@@ -209,27 +209,6 @@ export default function Blog() {
             </div>
           )}
         </div>
-
-        {/* Newsletter Subscription */}
-        <div className="mt-20 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl p-8 md:p-12 text-white text-center">
-          <BookOpen className="w-16 h-16 mx-auto mb-6 opacity-90" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Stay Updated
-          </h2>
-          <p className="text-xl text-green-50 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter and get the latest insights delivered to your inbox
-          </p>
-          <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-6 py-4 rounded-xl text-gray-900 border-0 focus:outline-none focus:ring-4 focus:ring-green-300/50"
-            />
-            <button className="px-8 py-4 bg-white text-green-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors shadow-lg">
-              Subscribe
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
