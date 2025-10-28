@@ -86,6 +86,8 @@ export default function TemplateDetail() {
       setLoading(true);
       const data = await getTemplateById(Number(id));
       console.log('📋 Template Data in TemplateDetail:', data);
+      console.log('⭐ Template Rating:', data.rating, 'Type:', typeof data.rating);
+      console.log('📊 Template Review Count:', data.reviewCount, 'Type:', typeof data.reviewCount);
       console.log('📋 Template Images in TemplateDetail:', data.images);
       console.log('📋 Has Images?:', data.images && data.images.length > 0);
       
@@ -613,10 +615,21 @@ export default function TemplateDetail() {
                 <div className="flex items-center">
                   <div className="flex items-center space-x-1 mr-2">
                     {[...Array(5)].map((_, i) => {
-                      const rating = template.rating || 0;
+                      const rating = Number(template.rating) || 0;
                       const starValue = i + 1;
                       const isFilled = starValue <= rating;
                       const isHalfFilled = starValue - 0.5 <= rating && rating < starValue;
+                      
+                      // Debug logging for first star only
+                      if (i === 0) {
+                        console.log('🔍 Rating Debug:', {
+                          rawRating: template.rating,
+                          convertedRating: rating,
+                          starValue,
+                          isFilled,
+                          isHalfFilled
+                        });
+                      }
                       
                       return (
                         <div key={i} className="relative">
@@ -650,7 +663,7 @@ export default function TemplateDetail() {
                     })}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {template.rating ? `${template.rating.toFixed(1)}/5` : '0.0/5'} 
+                    {template.rating ? `${Number(template.rating).toFixed(1)}/5` : '0.0/5'} 
                     ({template.reviewCount || 0} review{(template.reviewCount || 0) !== 1 ? 's' : ''})
                   </span>
                 </div>
