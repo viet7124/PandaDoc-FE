@@ -24,7 +24,6 @@ export default function Payment() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>('payos');
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
   // Keep last PayOS response (optional)
   const [, setPayosData] = useState<PayOSResponse | null>(null);
 
@@ -64,7 +63,6 @@ export default function Payment() {
     }
   };
 
-  const validatePayment = (): boolean => true;
 
   const handlePayOSPayment = async () => {
     if (!template) return;
@@ -106,40 +104,6 @@ export default function Payment() {
 
     // Only PayOS supported
     await handlePayOSPayment();
-    return;
-
-    const result = await confirm({
-      title: 'Confirm Payment',
-      message: `You are about to pay ${template.price.toLocaleString('vi-VN')} VND for "${template.title}". This action cannot be undone.`,
-      type: 'success',
-      confirmText: 'Pay Now',
-      cancelText: 'Cancel'
-    });
-
-    if (!result) return;
-
-    try {
-      setProcessing(true);
-
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Call purchase API
-      await purchaseTemplate(template.id);
-
-      setPaymentSuccess(true);
-      toast.success('Payment Successful!', 'Template has been added to your library');
-
-      // Redirect after 3 seconds
-      setTimeout(() => {
-        navigate(`/templates/${template.id}`);
-      }, 3000);
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('Payment Failed', 'There was an error processing your payment. Please try again.');
-    } finally {
-      setProcessing(false);
-    }
   };
 
   if (loading) {
@@ -161,31 +125,6 @@ export default function Payment() {
           >
             Back to Templates
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (paymentSuccess) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-12 h-12 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-          <p className="text-gray-600 mb-6">
-            Your payment has been processed successfully. The template has been added to your library.
-          </p>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mb-1">Template</p>
-            <p className="font-semibold text-gray-900">{template.title}</p>
-            <p className="text-sm text-gray-600 mt-2">Amount Paid</p>
-            <p className="text-2xl font-bold text-green-600">
-              {template.price.toLocaleString('vi-VN')} VND
-            </p>
-          </div>
-          <p className="text-sm text-gray-500">Redirecting to template page...</p>
         </div>
       </div>
     );
