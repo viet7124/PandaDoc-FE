@@ -2,6 +2,21 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api';
 
+// Add axios interceptor to handle OAuth2 redirects
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log('🔍 401/403 Error - Authentication required');
+      // Instead of redirecting to OAuth2 (which causes CORS), redirect to login page
+      console.log('🔍 Redirecting to login page instead of OAuth2 to avoid CORS issues');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Payout interfaces
 export interface PendingPayout {
   id: number;

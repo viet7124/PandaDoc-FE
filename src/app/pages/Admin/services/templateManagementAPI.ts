@@ -7,20 +7,11 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // Check if the error response contains an OAuth2 redirect
-      const redirectUrl = error.response?.headers?.location;
-      console.log('🔍 401/403 Error - Redirect URL from backend:', redirectUrl);
-      
-      if (redirectUrl && redirectUrl.includes('oauth2/authorization/google')) {
-        // Force HTTPS for OAuth2 redirects
-        const httpsRedirectUrl = redirectUrl.replace('http://', 'https://');
-        console.log('🔄 Backend returned HTTP OAuth2 redirect, forcing HTTPS:', {
-          original: redirectUrl,
-          fixed: httpsRedirectUrl
-        });
-        window.location.href = httpsRedirectUrl;
-        return Promise.reject(error);
-      }
+      console.log('🔍 401/403 Error - Authentication required');
+      // Instead of redirecting to OAuth2 (which causes CORS), redirect to login page
+      console.log('🔍 Redirecting to login page instead of OAuth2 to avoid CORS issues');
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
     return Promise.reject(error);
   }
