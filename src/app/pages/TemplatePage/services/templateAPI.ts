@@ -361,12 +361,14 @@ export const getPreviewImages = async (id: number): Promise<string[]> => {
  */
 export const uploadPreviewImages = async (id: number, files: File[]): Promise<void> => {
   try {
+    // Enforce a maximum of 4 images client-side
+    const limitedFiles = files.slice(0, 4);
     const fullUrl = `${url}/templates/${id}/preview-images`;
     console.log('POST Preview Images URL:', fullUrl);
-    console.log('Number of files:', files.length);
+    console.log('Number of files (limited to 4):', limitedFiles.length);
     
     const formData = new FormData();
-    files.forEach((file, index) => {
+    limitedFiles.forEach((file, index) => {
       // Use 'files' as the field name (match backend expectation)
       formData.append('files', file);
       console.log(`Added file ${index + 1}:`, {

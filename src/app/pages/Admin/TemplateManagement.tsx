@@ -368,7 +368,13 @@ export default function TemplateManagement() {
       return;
     }
 
-    setSelectedPreviewFiles(files);
+    // Enforce maximum of 4 preview images
+    const limited = files.slice(0, 4);
+    if (files.length > 4) {
+      toast.info('Limit Reached', 'Only the first 4 images were selected.');
+    }
+
+    setSelectedPreviewFiles(limited);
   };
 
   const handleUploadPreviews = async () => {

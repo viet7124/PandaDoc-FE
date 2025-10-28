@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CreditCard, Wallet, Building2, CheckCircle, ArrowLeft, Lock } from 'lucide-react';
+import { Wallet, CheckCircle, ArrowLeft, Lock } from 'lucide-react';
 import { getTemplateById, purchaseTemplate, type Template, type PayOSResponse } from '../TemplatePage/services/templateAPI';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
@@ -32,11 +32,7 @@ export default function Payment() {
   const payosReturnUrl = `${window.location.origin}/payment/success`;
 
   // Card payment form (fallback)
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [saveCard, setSaveCard] = useState(false);
+  // Removed card/bank form as we only use PayOS
 
   const paymentMethods: PaymentMethod[] = [
     {
@@ -44,18 +40,6 @@ export default function Payment() {
       name: 'PayOS Gateway',
       icon: <Wallet className="w-5 h-5" />,
       description: 'QR Code, Banking, E-Wallet (Recommended)'
-    },
-    {
-      id: 'card',
-      name: 'Credit/Debit Card',
-      icon: <CreditCard className="w-5 h-5" />,
-      description: 'Pay securely with your card'
-    },
-    {
-      id: 'bank',
-      name: 'Bank Transfer',
-      icon: <Building2 className="w-5 h-5" />,
-      description: 'Manual bank transfer'
     }
   ];
 
@@ -80,73 +64,7 @@ export default function Payment() {
     }
   };
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
-    }
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.slice(0, 2) + '/' + v.slice(2, 4);
-    }
-    return v;
-  };
-
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCardNumber(e.target.value);
-    if (formatted.replace(/\s/g, '').length <= 16) {
-      setCardNumber(formatted);
-    }
-  };
-
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatExpiryDate(e.target.value);
-    if (formatted.replace(/\//g, '').length <= 4) {
-      setExpiryDate(formatted);
-    }
-  };
-
-  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    if (value.length <= 4) {
-      setCvv(value);
-    }
-  };
-
-  const validatePayment = (): boolean => {
-    if (selectedMethod === 'card') {
-      if (!cardNumber || cardNumber.replace(/\s/g, '').length !== 16) {
-        toast.warning('Invalid Card', 'Please enter a valid 16-digit card number');
-        return false;
-      }
-      if (!cardName || cardName.trim().length < 3) {
-        toast.warning('Invalid Name', 'Please enter the cardholder name');
-        return false;
-      }
-      if (!expiryDate || expiryDate.length !== 5) {
-        toast.warning('Invalid Expiry', 'Please enter a valid expiry date (MM/YY)');
-        return false;
-      }
-      if (!cvv || (cvv.length !== 3 && cvv.length !== 4)) {
-        toast.warning('Invalid CVV', 'Please enter a valid CVV (3-4 digits)');
-        return false;
-      }
-    }
-    return true;
-  };
+  const validatePayment = (): boolean => true;
 
   const handlePayOSPayment = async () => {
     if (!template) return;
@@ -186,12 +104,9 @@ export default function Payment() {
   const handlePayment = async () => {
     if (!template) return;
 
-    if (selectedMethod === 'payos') {
-      await handlePayOSPayment();
-      return;
-    }
-
-    if (!validatePayment()) return;
+    // Only PayOS supported
+    await handlePayOSPayment();
+    return;
 
     const result = await confirm({
       title: 'Confirm Payment',
@@ -325,76 +240,7 @@ export default function Payment() {
                 ))}
               </div>
 
-              {/* Card Payment Form */}
-              {selectedMethod === 'card' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={handleCardNumberChange}
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      placeholder="NGUYEN VAN A"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent uppercase"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        value={expiryDate}
-                        onChange={handleExpiryChange}
-                        placeholder="MM/YY"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        CVV
-                      </label>
-                      <input
-                        type="text"
-                        value={cvv}
-                        onChange={handleCvvChange}
-                        placeholder="123"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="saveCard"
-                      checked={saveCard}
-                      onChange={(e) => setSaveCard(e.target.checked)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <label htmlFor="saveCard" className="ml-2 text-sm text-gray-700">
-                      Save this card for future purchases
-                    </label>
-                  </div>
-                </div>
-              )}
+              {/* Card/Bank options removed */}
 
               {/* PayOS Payment */}
               {selectedMethod === 'payos' && (
@@ -456,22 +302,7 @@ export default function Payment() {
                 </div>
               )}
 
-              {/* Bank Transfer */}
-              {selectedMethod === 'bank' && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-blue-900 mb-4">Bank Transfer Instructions</h3>
-                  <div className="space-y-2 text-sm text-blue-800">
-                    <p><strong>Bank:</strong> Vietcombank</p>
-                    <p><strong>Account Number:</strong> 0123456789</p>
-                    <p><strong>Account Name:</strong> CONG TY PANDADOCS</p>
-                    <p><strong>Amount:</strong> {template.price.toLocaleString('vi-VN')} VND</p>
-                    <p><strong>Content:</strong> PAYMENT {template.id} [Your Name]</p>
-                  </div>
-                  <p className="text-xs text-blue-600 mt-4">
-                    Please transfer the exact amount and include the payment reference in the transfer description.
-                  </p>
-                </div>
-              )}
+              {/* Bank transfer removed */}
             </div>
 
             {/* Security Badge */}

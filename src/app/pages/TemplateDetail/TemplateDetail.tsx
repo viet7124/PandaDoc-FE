@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { 
@@ -191,15 +191,21 @@ export default function TemplateDetail() {
     );
   }
 
+  // Limit preview images to maximum of 4 for carousel
+  const previewImages = useMemo(() => {
+    const images = template?.images || [];
+    return images.slice(0, 4);
+  }, [template]);
+
   const nextImage = () => {
-    if (template?.images && template.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % (template.images?.length || 1));
+    if (previewImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % previewImages.length);
     }
   };
 
   const prevImage = () => {
-    if (template?.images && template.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + (template.images?.length || 1)) % (template.images?.length || 1));
+    if (previewImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + previewImages.length) % previewImages.length);
     }
   };
 
@@ -480,11 +486,11 @@ export default function TemplateDetail() {
             <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
                 {/* Display actual preview images if available */}
-                {template.images && template.images.length > 0 ? (
+                {previewImages.length > 0 ? (
                   <img
-                    src={template.images[currentImageIndex]}
+                    src={previewImages[currentImageIndex]}
                     alt={`${template.title} preview ${currentImageIndex + 1}`}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain transition-transform duration-300 ease-in-out"
                     onError={(e) => {
                       // Fallback if image fails to load
                       e.currentTarget.style.display = 'none';
@@ -523,9 +529,9 @@ export default function TemplateDetail() {
                 </button>
 
                 {/* Image indicators */}
-                {template.images && template.images.length > 1 && (
+                {previewImages.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {template.images.map((_, index) => (
+                    {previewImages.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
