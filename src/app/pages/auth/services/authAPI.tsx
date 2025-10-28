@@ -1,5 +1,16 @@
 import axios from 'axios';
-const url = import.meta.env.VITE_BASE_URL + 'api';
+
+// Normalize backend base URL and guard against missing env in production
+const rawBase: string = import.meta.env.VITE_BASE_URL || '';
+const normalizedBase: string = rawBase
+  ? rawBase.replace(/\/?$/, '/')
+  : '';
+
+if (!normalizedBase) {
+    console.warn('[authAPI] VITE_BASE_URL is not defined. API calls will fail.');
+}
+
+const url = `${normalizedBase}api`;
 
 export interface ForgotPasswordRequest {
     email: string;
@@ -12,7 +23,12 @@ export interface ResetPasswordRequest {
 
 export const register = async (username: string, email: string, password: string) => {
     try {
-        const response = await axios.post(`${url}/auth/signup`, { username, email, password });
+        const response = await axios.post(`${url}/auth/signup`, { username, email, password }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
         return response.data;
     } catch (error) {
         console.error('Error registering user:', error);
@@ -71,8 +87,10 @@ export const resetPassword = async (token: string, newPassword: string): Promise
 // Verify email via token query param
 export const verifyEmail = async (token: string): Promise<void> => {
     try {
-        await axios.get(`${url}/auth/verify-email`, {
+        const fullUrl = `${url}/auth/verify-email`;
+        await axios.get(fullUrl, {
             params: { token },
+            headers: { 'ngrok-skip-browser-warning': 'true' }
         });
     } catch (error) {
         console.error('Error verifying email:', error);
