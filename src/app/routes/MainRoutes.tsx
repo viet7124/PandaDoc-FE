@@ -19,6 +19,9 @@ import Notification from "../pages/Notification/notification";
 import Payment from "../pages/Payment/Payment";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import OAuth2Redirect from "../pages/auth/OAuth2Redirect";
+import ForgotPassword from "../pages/auth/forgot-password";
+import ResetPassword from "../pages/auth/reset-password";
+import VerifyEmail from "../pages/auth/verify-email";
 import AboutUs from "../pages/AboutUs/AboutUs";
 import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
 import TermsOfService from "../pages/TermsOfService/TermsOfService";
@@ -53,6 +56,9 @@ export default function MainRoutes() {
         {/* Auth routes - no protection */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/oauth2/redirect" element={<OAuth2Redirect />} />
         
         {/* Admin routes with AdminLayout and protection */}
