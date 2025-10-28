@@ -180,6 +180,12 @@ export default function TemplateDetail() {
     };
   }, [template, id]);
 
+  // Limit preview images to maximum of 4 for carousel - MUST be before conditional return
+  const previewImages = useMemo(() => {
+    const images = template?.images || [];
+    return images.slice(0, 4);
+  }, [template]);
+
   if (loading || !template) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -190,12 +196,6 @@ export default function TemplateDetail() {
       </div>
     );
   }
-
-  // Limit preview images to maximum of 4 for carousel
-  const previewImages = useMemo(() => {
-    const images = template?.images || [];
-    return images.slice(0, 4);
-  }, [template]);
 
   const nextImage = () => {
     if (previewImages.length > 0) {
