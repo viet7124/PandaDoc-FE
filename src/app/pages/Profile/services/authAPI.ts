@@ -96,8 +96,8 @@ export const updateProfile = async (
     
     const response = await axios.put<UserProfile>(`${url}/users/me/profile`, formData, {
       headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'multipart/form-data'
+        ...getAuthHeaders()
+        // Don't set Content-Type for FormData, let browser set it with boundary
       }
     });
     

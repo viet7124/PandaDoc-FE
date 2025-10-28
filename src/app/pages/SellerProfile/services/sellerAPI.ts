@@ -574,7 +574,7 @@ export const updateTemplate = async (templateId: number, templateData: FormData)
     const response = await axios.put(`${API_URL}/sellers/templates/${templateId}`, templateData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
+        // Don't set Content-Type for FormData, let browser set it with boundary
       },
     });
     return response.data;

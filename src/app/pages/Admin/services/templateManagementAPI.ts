@@ -214,8 +214,8 @@ export const createTemplate = async (data: CreateTemplateRequest): Promise<Templ
 
     const response = await axios.post<Template>(`${url}/templates`, formData, {
       headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'multipart/form-data'
+        ...getAuthHeaders()
+        // Don't set Content-Type for FormData, let browser set it with boundary
       }
     });
     
