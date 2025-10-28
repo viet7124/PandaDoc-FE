@@ -1,8 +1,6 @@
 import axios from 'axios';
 
 const url = import.meta.env.VITE_BASE_URL + 'api'
-console.log('🌐 Base URL:', import.meta.env.VITE_BASE_URL);
-console.log('🔗 Full API URL:', url);
 
 interface Category {
   id: number;
@@ -112,15 +110,9 @@ export const getTemplateById = async (id: number): Promise<Template> => {
     });
     
     console.log('Template Response:', response.data);
-    console.log('⭐ API Rating Field:', response.data.rating, 'Type:', typeof response.data.rating);
-    console.log('📊 API Review Count Field:', response.data.reviewCount, 'Type:', typeof response.data.reviewCount);
     console.log('🖼️ Template Images:', response.data.images);
     console.log('🖼️ Images Count:', response.data.images?.length || 0);
     console.log('🖼️ Images Array:', JSON.stringify(response.data.images));
-    
-    // Log the full response structure
-    console.log('🔍 Full Response Structure:', JSON.stringify(response.data, null, 2));
-    
     return response.data;
   } catch (error) {
     console.error('Error fetching template:', error);
