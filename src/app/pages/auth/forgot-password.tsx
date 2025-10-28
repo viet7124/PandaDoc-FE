@@ -66,7 +66,7 @@ export default function ForgotPassword() {
               </svg>
               <div>
                 <p className="font-medium mb-2">Request submitted successfully!</p>
-                <p className="mb-2">If the email exists, you will receive instructions shortly.</p>
+                <p className="mb-2">If the email exists, you will receive instructions shortly. This may take a few minutes.</p>
                 <p className="text-green-600 font-medium">
                   💡 Don't see the email? Please check your spam/junk folder.
                 </p>

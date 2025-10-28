@@ -60,6 +60,11 @@ export default function VerifyEmail() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify your email</h1>
             <p className="text-gray-700">We have sent a confirmation link to{email ? ` ${email}` : ' your email'}.</p>
             <p className="text-gray-500 mt-2">Please check your inbox and click the link to activate your account.</p>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-700 text-sm">
+                ⏰ <strong>Note:</strong> The email may take a few minutes to arrive. Please check your spam folder if you don't see it.
+              </p>
+            </div>
           </>
         )}
         {status === 'verifying' && (
