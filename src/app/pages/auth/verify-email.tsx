@@ -12,10 +12,12 @@ export default function VerifyEmail() {
   const query = useQuery();
   const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error' | 'awaiting'>('idle');
   const [email, setEmail] = useState<string>('');
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   useEffect(() => {
     const token = query.get('token');
     const emailParam = query.get('email') || '';
+    
     if (!token) {
       // No token means we are on the "Check your inbox" screen after registration
       setEmail(emailParam);
@@ -23,8 +25,14 @@ export default function VerifyEmail() {
       return;
     }
 
+    // Prevent multiple verification attempts
+    if (hasAttempted) {
+      return;
+    }
+
     const verify = async () => {
       try {
+        setHasAttempted(true);
         setStatus('verifying');
         await verifyEmail(token);
         setStatus('success');
@@ -36,7 +44,7 @@ export default function VerifyEmail() {
       }
     };
     verify();
-  }, [query, success, error]);
+  }, [query, success, error, hasAttempted]);
 
   return (
     <div className="min-h-[50vh] flex items-center justify-center px-4 py-12">
@@ -61,6 +69,12 @@ export default function VerifyEmail() {
           <div>
             <p className="text-red-600">Verification failed. The link may be invalid or expired.</p>
             <p className="text-gray-600 mt-2">Please register again to receive a new verification email.</p>
+            <button 
+              onClick={() => window.location.href = '/register'}
+              className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Go to Registration
+            </button>
           </div>
         )}
       </div>
