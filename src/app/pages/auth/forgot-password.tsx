@@ -60,7 +60,18 @@ export default function ForgotPassword() {
 
         {submitted && (
           <div className="mt-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
-            Request submitted. If the email exists, you will receive instructions shortly.
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <div>
+                <p className="font-medium mb-2">Request submitted successfully!</p>
+                <p className="mb-2">If the email exists, you will receive instructions shortly.</p>
+                <p className="text-green-600 font-medium">
+                  💡 Don't see the email? Please check your spam/junk folder.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
