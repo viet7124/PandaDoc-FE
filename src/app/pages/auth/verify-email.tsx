@@ -10,16 +10,20 @@ function useQuery(): URLSearchParams {
 export default function VerifyEmail() {
   const { success, error } = useToast();
   const query = useQuery();
-  const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error' | 'awaiting'>('idle');
+  const [email, setEmail] = useState<string>('');
 
   useEffect(() => {
-    const run = async () => {
-      const token = query.get('token');
-      if (!token) {
-        setStatus('error');
-        error('Invalid link', 'Verification token is missing.');
-        return;
-      }
+    const token = query.get('token');
+    const emailParam = query.get('email') || '';
+    if (!token) {
+      // No token means we are on the "Check your inbox" screen after registration
+      setEmail(emailParam);
+      setStatus('awaiting');
+      return;
+    }
+
+    const verify = async () => {
       try {
         setStatus('verifying');
         await verifyEmail(token);
@@ -31,12 +35,19 @@ export default function VerifyEmail() {
         error('Verification failed', message);
       }
     };
-    run();
+    verify();
   }, [query, success, error]);
 
   return (
     <div className="min-h-[50vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+        {status === 'awaiting' && (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify your email</h1>
+            <p className="text-gray-700">We have sent a confirmation link to{email ? ` ${email}` : ' your email'}.</p>
+            <p className="text-gray-500 mt-2">Please check your inbox and click the link to activate your account.</p>
+          </>
+        )}
         {status === 'verifying' && (
           <>
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto mb-4"></div>
@@ -47,7 +58,10 @@ export default function VerifyEmail() {
           <p className="text-green-700">Your email has been verified. You may close this window.</p>
         )}
         {status === 'error' && (
-          <p className="text-red-600">Verification failed. The link may be invalid or expired.</p>
+          <div>
+            <p className="text-red-600">Verification failed. The link may be invalid or expired.</p>
+            <p className="text-gray-600 mt-2">Please register again to receive a new verification email.</p>
+          </div>
         )}
       </div>
     </div>

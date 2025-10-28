@@ -43,12 +43,9 @@ export default function Register() {
       const response = await register(formData.username, formData.email, formData.password);
       console.log('Register response:', response);
       
-      toast.success('Registration Successful!', 'Your account has been created. Please login to continue.');
-      
-      // Redirect to login page after 1.5 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      toast.success('Registration Successful!', 'We have sent a verification link to your email.');
+      // Navigate to verify-email screen (awaiting state) to instruct user to check email
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
       console.error('Register error:', error);
       toast.error('Registration Failed', 'Failed to create account. Username or email may already be taken.');
