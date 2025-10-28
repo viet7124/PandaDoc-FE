@@ -179,8 +179,11 @@ export default function TemplateDetail() {
   // useEffect must be called before any conditional returns
   useEffect(() => {
     if (id) {
-      fetchTemplate();
-      fetchReviews();
+      const loadData = async () => {
+        await fetchTemplate();
+        await fetchReviews();
+      };
+      loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
