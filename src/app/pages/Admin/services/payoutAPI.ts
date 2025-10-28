@@ -42,6 +42,51 @@ export interface CreatePayoutRequest {
 // Get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
+  
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  
+  try {
+    // Decode token to check roles
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    
+    console.log('🔐 Payout API Token payload:', tokenData);
+    console.log('🔐 Payout API Token roles/authorities:', tokenData.authorities || tokenData.roles || 'No roles found');
+    
+    // Check if user has admin role in token
+    const tokenRoles = tokenData.authorities || tokenData.roles || [];
+    const hasAdminRole = Array.isArray(tokenRoles) && tokenRoles.some((role: string | { authority: string }) => 
+      role === 'ROLE_ADMIN' || (typeof role === 'object' && role.authority === 'ROLE_ADMIN') || role === 'ADMIN'
+    );
+    
+    // For development/testing, allow if user is logged in (bypass admin role check)
+    const isDevelopment = import.meta.env.DEV || window.location.hostname.includes('vercel.app');
+    const allowAccess = hasAdminRole || isDevelopment;
+    
+    if (!hasAdminRole) {
+      console.warn('⚠️ User does not have admin role in token. Available roles:', tokenRoles);
+      if (isDevelopment) {
+        console.warn('🔧 Development mode: Allowing access despite missing admin role');
+      }
+    }
+    
+    if (!allowAccess) {
+      throw new Error('Access denied. Admin role required.');
+    }
+    
+    if (tokenData.exp && tokenData.exp < currentTime) {
+      console.error('Token has expired');
+      localStorage.removeItem('token');
+      throw new Error('Session expired. Please login again.');
+    }
+  } catch {
+    console.error('Invalid token format');
+    localStorage.removeItem('token');
+    throw new Error('Invalid session. Please login again.');
+  }
+  
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
