@@ -127,6 +127,34 @@ export default function TemplateDetail() {
       setLoadingReviews(true);
       const data = await getTemplateReviews(Number(id));
       setReviews(data);
+      
+      // Calculate rating and review count from reviews data
+      if (data && data.length > 0) {
+        const totalRating = data.reduce((sum, review) => sum + (review.rating || 0), 0);
+        const averageRating = totalRating / data.length;
+        const reviewCount = data.length;
+        
+        console.log('📊 Calculated Rating from Reviews:', {
+          totalRating,
+          averageRating,
+          reviewCount,
+          reviews: data.length
+        });
+        
+        // Update template with calculated rating
+        setTemplate(prev => prev ? {
+          ...prev,
+          rating: averageRating,
+          reviewCount: reviewCount
+        } : null);
+      } else {
+        // If no reviews, set default values
+        setTemplate(prev => prev ? {
+          ...prev,
+          rating: 0,
+          reviewCount: 0
+        } : null);
+      }
     } catch (error) {
       console.error('Error fetching reviews:', error);
       // Don't show error toast for reviews - they're optional
