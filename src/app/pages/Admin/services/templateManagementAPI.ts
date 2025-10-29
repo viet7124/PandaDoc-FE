@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -92,12 +91,50 @@ interface UpdateTemplateRequest {
 }
 
 const getAuthHeadersLocal = () => {
-  try {
-    return getAuthHeadersLocal();
-  } catch (error) {
-    console.error('❌ Authentication error:', error);
-    throw error;
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please login again.');
   }
+  
+  // Check if token is expired (basic check)
+  try {
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    
+    console.log('🔐 Token payload:', tokenData);
+    console.log('🔐 Token roles/authorities:', tokenData.authorities || tokenData.roles || 'No roles found');
+    
+    // Check if user has admin role in token
+    const tokenRoles = tokenData.authorities || tokenData.roles || [];
+    const hasAdminRole = Array.isArray(tokenRoles) && tokenRoles.some((role: string | { authority: string }) => 
+      role === 'ROLE_ADMIN' || (typeof role === 'object' && role.authority === 'ROLE_ADMIN') || role === 'ADMIN'
+    );
+    
+    if (!hasAdminRole) {
+      console.error('❌ Access denied - ROLE_ADMIN required but not found');
+      console.error('❌ Available roles:', tokenRoles);
+      console.error('❌ User subject:', tokenData.sub);
+      throw new Error('Access denied. ROLE_ADMIN required.');
+    }
+    
+    if (tokenData.exp && tokenData.exp < currentTime) {
+      console.error('Token has expired');
+      localStorage.removeItem('token');
+      throw new Error('Session expired. Please login again.');
+    }
+  } catch {
+    console.error('Invalid token format');
+    localStorage.removeItem('token');
+    throw new Error('Invalid session. Please login again.');
+  }
+  
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true',
+    'Content-Type': 'application/json'
+  };
 };
 
 // Get all templates (with optional status filter)

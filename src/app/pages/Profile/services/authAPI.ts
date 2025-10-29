@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -19,12 +18,11 @@ export interface UserProfile {
 }
 
 const getAuthHeadersLocal = () => {
-  try {
-    return getAuthHeadersLocal();
-  } catch (error) {
-    console.error('❌ Authentication error:', error);
-    throw error;
-  }
+  const token = localStorage.getItem('token');
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true'
+  };
 };
 
 /**

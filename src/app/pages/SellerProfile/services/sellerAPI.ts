@@ -1,15 +1,13 @@
 import axios from 'axios';
-import { getAuthHeaders } from '../../../utils/authUtils';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api'
 
 const getAuthHeadersLocal = () => {
-  try {
-    return getAuthHeaders();
-  } catch (error) {
-    console.error('❌ Authentication error:', error);
-    throw error;
-  }
+  const token = localStorage.getItem('token');
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true'
+  };
 };
 
 // Register as a seller
@@ -280,7 +278,6 @@ export interface SellerDashboard {
 
 export const getSellerDashboard = async (): Promise<SellerDashboard> => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get<SellerDashboard>(`${API_URL}/sellers/dashboard`, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -338,7 +335,6 @@ interface RawSellerTemplate {
 // Get seller's templates (uses main templates endpoint and filters by current user)
 export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
   try {
-    const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userId = user.id;
     
@@ -430,7 +426,6 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
 // Get seller's earnings
 export const getSellerEarnings = async () => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/sellers/earnings`, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -446,7 +441,6 @@ export const getSellerEarnings = async () => {
 // Get seller's statistics
 export const getSellerStats = async () => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/sellers/stats`, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -468,7 +462,6 @@ export interface Category {
 // Get all categories
 export const getCategories = async (): Promise<Category[]> => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get<Category[]>(`${API_URL}/templates/categories`, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -537,7 +530,6 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<unkno
       throw new Error('Price must be a valid positive number');
     }
 
-    const token = localStorage.getItem('token');
     const response = await axios.post(`${API_URL}/templates/upload`, formData, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -570,7 +562,6 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<unkno
 // Update template
 export const updateTemplate = async (templateId: number, templateData: FormData) => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.put(`${API_URL}/sellers/templates/${templateId}`, templateData, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -587,7 +578,6 @@ export const updateTemplate = async (templateId: number, templateData: FormData)
 // Delete template
 export const deleteTemplate = async (templateId: number): Promise<void> => {
   try {
-    const token = localStorage.getItem('token');
     console.log('🗑️ Deleting template:', templateId);
     
     const response = await axios.delete(`${API_URL}/templates/${templateId}`, {
@@ -637,7 +627,6 @@ export const deleteTemplate = async (templateId: number): Promise<void> => {
 // Get sales history
 export const getSalesHistory = async (page: number = 1, limit: number = 10) => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/sellers/sales`, {
       params: { page, limit },
       headers: {
@@ -654,7 +643,6 @@ export const getSalesHistory = async (page: number = 1, limit: number = 10) => {
 // Request withdrawal
 export const requestWithdrawal = async (amount: number, method: string) => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.post(
       `${API_URL}/sellers/withdraw`,
       { amount, method },
@@ -719,7 +707,6 @@ interface RawPayoutData {
 // Get seller payouts (for sellers to view their payout history)
 export const getSellerPayouts = async (): Promise<SellerPayout[]> => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.get<SellerPayout[]>(`${API_URL}/sellers/payouts`, {
       headers: {
         ...getAuthHeadersLocal(),
@@ -792,7 +779,6 @@ export interface EarningsSummary {
 
 export const getEarningsSummary = async (): Promise<EarningsSummary> => {
   try {
-    const token = localStorage.getItem('token');
     // Use the correct dashboard endpoint that returns totalEarnings
     const response = await axios.get(`${API_URL}/sellers/dashboard`, {
       headers: {
