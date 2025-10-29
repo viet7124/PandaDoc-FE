@@ -90,22 +90,22 @@ export default function Footer() {
               <h3 className="text-lg font-semibold text-gray-900">Contact PandaDocs</h3>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                <input name="name" type="text" required className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                <input name="name" type="text" required placeholder="Enter your name" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
-                <input name="email" type="email" required className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                <input name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input name="subject" type="text" required className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                <input name="subject" type="text" required placeholder="How can we help?" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea name="message" rows={5} required className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                <textarea name="message" rows={6} required placeholder="Write your message here..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400 min-h-[140px]" />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>

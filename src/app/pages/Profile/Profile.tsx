@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
@@ -25,7 +26,10 @@ import { downloadTemplate } from '../TemplatePage/services/templateAPI';
 export default function Profile() {
   const toast = useToast();
   const { confirm } = useConfirm();
-  const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>('account');
+  const [searchParams] = useSearchParams();
+  const initialView = (searchParams.get('view') === 'library') ? 'purchased' : 'account';
+  const isLibraryView = searchParams.get('view') === 'library';
+  const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>(initialView as any);
   const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -66,9 +70,11 @@ export default function Profile() {
     } else if (activeTab === 'purchased') {
       fetchPurchases();
     } else if (activeTab === 'account') {
-      // Fetch both for account stats
-      fetchCollections();
-      fetchPurchases();
+      // In profile-only view we don't need library data
+      if (!isLibraryView) {
+        fetchCollections();
+        fetchPurchases();
+      }
     }
   }, [activeTab]);
 
@@ -687,37 +693,43 @@ export default function Profile() {
 
         {/* Tab Navigation */}
         <div className="bg-white p-2 rounded-xl mb-10 inline-flex shadow-sm border border-gray-100">
-          <TabButton
-            tab="account"
-            label="Account"
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            }
-          />
-          <TabButton
-            tab="purchased"
-            label="Templates Purchased"
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            }
-          />
-          <TabButton
-            tab="collections"
-            label="My collections"
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            }
-          />
+          {!isLibraryView && (
+            <TabButton
+              tab="account"
+              label="Account"
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              }
+            />
+          )}
+          {isLibraryView && (
+            <>
+              <TabButton
+                tab="purchased"
+                label="Templates Purchased"
+                icon={
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                }
+              />
+              <TabButton
+                tab="collections"
+                label="My collections"
+                icon={
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                }
+              />
+            </>
+          )}
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'account' && renderAccountTab()}
+        {!isLibraryView && activeTab === 'account' && renderAccountTab()}
 
         {activeTab === 'purchased' && (
           <div className="space-y-8">

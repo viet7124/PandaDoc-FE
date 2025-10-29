@@ -103,7 +103,7 @@ export default function Header() {
               Templates
             </Link>
             <Link 
-              to="/profile?tab=purchased" 
+              to="/profile?view=library" 
               className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
             >
               My Library
@@ -286,7 +286,7 @@ export default function Header() {
               Templates
             </Link>
             <Link 
-              to="/profile?tab=purchased" 
+              to="/profile?view=library" 
               className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
               onClick={() => setIsMobileMenuOpen(false)}
             >
