@@ -84,7 +84,12 @@ export default function OAuth2Redirect() {
         // Notify components about role change
         dispatchRoleChangeEvent();
 
-        toast.success('Login Successful', 'Welcome! You have been logged in successfully.');
+        const roleLabel: string = userRoles.includes('ROLE_ADMIN')
+          ? 'Admin'
+          : userRoles.includes('ROLE_SELLER')
+            ? 'Seller'
+            : 'User';
+        toast.success('Welcome', `${userData.username} (${roleLabel})`);
         
         // Clear URL parameters to prevent loop
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -93,7 +98,7 @@ export default function OAuth2Redirect() {
         if (userRoles.includes('ROLE_ADMIN')) {
           navigate('/admin');
         } else if (userRoles.includes('ROLE_SELLER')) {
-          navigate('/seller-profile');
+          navigate('/home');
         } else {
           navigate('/home');
         }

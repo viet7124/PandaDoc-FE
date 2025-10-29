@@ -5,6 +5,7 @@ import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 import { setAuthData, type UserData } from '../../utils/authUtils';
+import { useToast } from '../../contexts/ToastContext';
 import LegalDocumentModal from '../../components/LegalDocumentModal';
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../../constants/legalDocuments';
 
@@ -14,6 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -57,8 +59,15 @@ export default function Login() {
       
       dispatchRoleChangeEvent();
 
+      const roleLabel: string = roles.includes('ROLE_ADMIN')
+        ? 'Admin'
+        : roles.includes('ROLE_SELLER')
+          ? 'Seller'
+          : 'User';
+      toast.success('Welcome', `${userData.username} (${roleLabel})`);
+
       if (roles.includes('ROLE_ADMIN')) navigate('/admin');
-      else if (roles.includes('ROLE_SELLER')) navigate('/seller-profile');
+      else if (roles.includes('ROLE_SELLER')) navigate('/home');
       else navigate('/home');
     } catch {
       setError('Invalid username or password');
