@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { getAuthHeaders } from '../../utils/authUtils';
 import heroImage from '../../assets/avatar.png';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
@@ -27,13 +28,7 @@ interface Template {
   images?: string[];
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// use shared getAuthHeaders; but popular templates endpoint typically doesn't require auth
 
 export default function Home() {
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
