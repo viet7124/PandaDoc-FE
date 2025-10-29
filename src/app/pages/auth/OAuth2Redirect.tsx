@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
+import { setAuthData, UserData } from '../../utils/authUtils';
 
 export default function OAuth2Redirect() {
   const navigate = useNavigate();
@@ -59,28 +60,19 @@ export default function OAuth2Redirect() {
           return;
         }
 
-        // Store the authentication token
-        localStorage.setItem('token', token);
-        
-        // Store user info
-        if (username) {
-          localStorage.setItem('username', username);
-        }
-        if (email) {
-          localStorage.setItem('email', email);
-        }
         // Handle roles - provide default if not available
         const userRoles = roles ? JSON.parse(roles) : ['ROLE_USER'];
-        localStorage.setItem('userRoles', JSON.stringify(userRoles));
         
         // Create user data with all required fields
-        const userData = {
+        const userData: UserData = {
           id: userId ? parseInt(userId) : 1, // Default to 1 if no ID provided
           username: username || 'Google User',
           email: email || '',
           roles: userRoles
         };
-        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Store authentication data using utility function
+        setAuthData(token, userData, userRoles);
 
         // Debug: Log final localStorage state
         console.log('Final localStorage state after OAuth2:', {

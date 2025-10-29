@@ -4,6 +4,8 @@ import { login } from './services/authAPI';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
+import { setAuthData, UserData } from '../../utils/authUtils';
+import { AuthDebugger } from '../../components/AuthDebugger';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -32,34 +34,59 @@ export default function Login() {
       const response = await login(formData.username, formData.password);
       console.log('Login response:', response);
 
-      // Store token and user data
-      if (response.token) {
-        localStorage.setItem('token', response.token);
-      }
+      // Handle different response formats from backend
+      let token, userData: UserData, roles;
       
-      // Store user info and roles
-      const userData = {
-        id: response.id,
-        username: response.username,
-        email: response.email,
-        roles: response.roles || []
-      };
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('userRoles', JSON.stringify(response.roles || []));
+      if (response.token) {
+        // Direct token in response
+        token = response.token;
+        userData = {
+          id: response.id,
+          username: response.username,
+          email: response.email,
+          roles: response.roles || []
+        };
+        roles = response.roles || [];
+      } else if (response.data && response.data.token) {
+        // Token nested in data object
+        token = response.data.token;
+        userData = {
+          id: response.data.id,
+          username: response.data.username,
+          email: response.data.email,
+          roles: response.data.roles || []
+        };
+        roles = response.data.roles || [];
+      } else if (response.accessToken) {
+        // Alternative token field name
+        token = response.accessToken;
+        userData = {
+          id: response.id,
+          username: response.username,
+          email: response.email,
+          roles: response.roles || []
+        };
+        roles = response.roles || [];
+      } else {
+        throw new Error('No token found in response');
+      }
+
+      // Store authentication data using utility function
+      setAuthData(token, userData, roles);
 
       // Notify components about role change
       dispatchRoleChangeEvent();
 
       // Redirect based on role
-      const roles = response.roles || [];
       if (roles.includes('ROLE_ADMIN')) {
         navigate('/admin');
       } else {
         navigate('/home');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
-      setError('Invalid username or password');
+      const errorMessage = (error as any)?.response?.data?.message || (error as any)?.message || 'Invalid username or password';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -266,6 +293,9 @@ export default function Login() {
           </Link>
         </p>
       </div>
+      
+      {/* Debug component - remove in production */}
+      <AuthDebugger />
     </div>
   );
 }

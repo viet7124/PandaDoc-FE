@@ -29,14 +29,10 @@ export default function PayoutManagement() {
       email: localStorage.getItem('email')
     });
     
-    // Temporary: Add token for testing if user has admin role but no token
+    // Check if user has admin role but no token (should redirect to login)
     const userRoles = localStorage.getItem('userRoles');
     if (!localStorage.getItem('token') && userRoles && userRoles.includes('ROLE_ADMIN')) {
-      console.log('🔧 Temporary fix: Adding test token for admin user');
-      // This is a temporary token for testing - replace with actual token from login
-      const testToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pb191c2VyIiwiaWF0IjoxNzYxNjgzODk3LCJleHAiOjE3NjE3NzAyOTd9.gxzZwC3qRe9v8kVX1BH-bigz7Tw_jkGGTIaclWB22JE';
-      localStorage.setItem('token', testToken);
-      console.log('🔧 Test token added to localStorage');
+      console.log('⚠️ Admin user detected but no token found - redirecting to login');
     }
     
     const token = localStorage.getItem('token');

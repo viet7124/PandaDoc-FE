@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthData } from '../../../utils/authUtils';
 
 // Normalize backend base URL and guard against missing env in production
 const rawBase: string = import.meta.env.VITE_BASE_URL || '';
@@ -38,10 +39,23 @@ export const register = async (username: string, email: string, password: string
 
 export const login = async (username: string, password: string) => {
     try {
-        const response = await axios.post(`${url}/auth/signin`, { username, password });
+        console.log('🔐 Attempting login for user:', username);
+        console.log('🔐 Backend URL:', `${url}/auth/signin`);
+        
+        const response = await axios.post(`${url}/auth/signin`, { username, password }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+        
+        console.log('🔐 Login response status:', response.status);
+        console.log('🔐 Login response data:', response.data);
+        
         return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error logging in user:', error);
+        console.error('Error response:', (error as { response?: { data?: unknown } })?.response?.data);
         throw error;
     }
 };
@@ -49,11 +63,17 @@ export const login = async (username: string, password: string) => {
 export const logout = async () => {
     try {
         const response = await axios.post(`${url}/auth/logout`);
-        localStorage.removeItem('token');
+        
+        // Clear all authentication data from localStorage using utility
+        clearAuthData();
+        
         return response.data;
     } catch (error) {
         console.error('Error logging out user:', error);
-        localStorage.removeItem('token');
+        
+        // Clear localStorage even if logout request fails
+        clearAuthData();
+        
         throw error;
     }
 };
