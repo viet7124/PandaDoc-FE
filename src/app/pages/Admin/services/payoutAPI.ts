@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api';
@@ -43,59 +44,7 @@ export interface CreatePayoutRequest {
   adminNote?: string;
 }
 
-// Get auth headers
-const getAuthHeadersLocal = () => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-  
-  try {
-    // Decode token to check expiration only
-    const tokenData = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Date.now() / 1000;
-    
-    console.log('🔐 Payout API Token payload:', tokenData);
-    
-    if (tokenData.exp && tokenData.exp < currentTime) {
-      console.error('Token has expired');
-      localStorage.removeItem('token');
-      throw new Error('Session expired. Please login again.');
-    }
-    
-    // Check admin role from localStorage (not from token)
-    const userRolesString = localStorage.getItem('userRoles');
-    let userRoles: string[] = [];
-    try {
-      userRoles = userRolesString ? JSON.parse(userRolesString) : [];
-    } catch (error) {
-      console.error('Error parsing user roles from localStorage:', error);
-    }
-    
-    console.log('🔐 Payout API User roles from localStorage:', userRoles);
-    
-    const hasAdminRole = userRoles.includes('ROLE_ADMIN');
-    
-    if (!hasAdminRole) {
-      console.error('❌ Access denied - ROLE_ADMIN required but not found');
-      console.error('❌ Available roles:', userRoles);
-      console.error('❌ User subject:', tokenData.sub);
-      throw new Error('Access denied. ROLE_ADMIN required.');
-    }
-    
-  } catch (error) {
-    console.error('Invalid token format or role check failed:', error);
-    localStorage.removeItem('token');
-    throw new Error('Invalid session. Please login again.');
-  }
-  
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// Use shared auth header builder for consistency across modules
 
 /**
  * GET /api/admin/payouts/pending
@@ -107,7 +56,7 @@ export const getPendingPayouts = async (): Promise<PendingPayout[]> => {
     console.log('GET Pending Payouts URL:', fullUrl);
     
     const response = await axios.get(fullUrl, {
-      headers: getAuthHeadersLocal(),
+      headers: getAuthHeaders(),
       timeout: 10000
     });
     
@@ -147,7 +96,7 @@ export const createTemplatePayout = async (templateId: number, payoutData: Creat
     }
     
     const response = await axios.post(fullUrl, payoutData, {
-      headers: getAuthHeadersLocal(),
+      headers: getAuthHeaders(),
       timeout: 10000
     });
     
@@ -195,7 +144,7 @@ export const markPayoutAsPaid = async (payoutId: number): Promise<void> => {
     console.log('PUT Mark Payout as Paid URL:', fullUrl);
     
     const response = await axios.put(fullUrl, {}, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Payout marked as paid successfully:', response.data);
@@ -219,7 +168,7 @@ export const getPayoutHistory = async (): Promise<PayoutHistory[]> => {
     console.log('GET Payout History URL:', fullUrl);
     
     const response = await axios.get(fullUrl, {
-      headers: getAuthHeadersLocal(),
+      headers: getAuthHeaders(),
       timeout: 10000
     });
     
