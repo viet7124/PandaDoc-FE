@@ -31,11 +31,6 @@ export default function LegalDocumentModal({ title, content, trigger, position =
     };
   }, [isOpen]);
 
-  // Determine positioning classes based on position prop
-  const positionClasses = position === 'right' 
-    ? 'items-center justify-end pr-4' 
-    : 'items-center justify-start pl-4';
-
   return (
     <>
       {/* Trigger */}
@@ -49,14 +44,25 @@ export default function LegalDocumentModal({ title, content, trigger, position =
 
       {/* Modal */}
       {isOpen && (
-        <div 
-          className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex ${positionClasses} z-50 py-4`}
-          onClick={closeModal}
-        >
+        <>
+          {/* Backdrop */}
           <div 
-            className="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-scale-in mx-2"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            onClick={closeModal}
+          />
+          
+          {/* Modal positioned to side */}
+          <div 
+            className={`fixed top-1/2 transform -translate-y-1/2 z-50 ${
+              position === 'right' 
+                ? 'right-4' 
+                : 'left-4'
+            }`}
           >
+            <div 
+              className="bg-white rounded-3xl max-w-2xl w-96 max-h-[80vh] flex flex-col shadow-2xl animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
               <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
@@ -88,8 +94,9 @@ export default function LegalDocumentModal({ title, content, trigger, position =
                 Close
               </button>
             </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
