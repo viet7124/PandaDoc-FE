@@ -24,11 +24,17 @@ export default function Login() {
     setError('');
 
     try {
+      console.log('🔐 Starting login process...');
       const res: LoginResponse = await login(formData.username, formData.password);
+      console.log('🔐 Login response received:', res);
 
       // Expect backend shape per swagger: { id, username, email, roles[], token, type }
       const token: string = res.token;
-      if (!token) throw new Error('No token returned by server');
+      if (!token) {
+        console.error('❌ No token in response:', res);
+        throw new Error('No token returned by server');
+      }
+      console.log('✅ Token received:', token.substring(0, 20) + '...');
 
       const userData: UserData = {
         id: res.id,
@@ -38,7 +44,15 @@ export default function Login() {
       };
       const roles = res.roles || [];
 
+      console.log('🔐 Storing auth data...');
       setAuthData(token, userData, roles);
+      
+      // Verify storage
+      console.log('🔐 Verification - localStorage after setAuthData:');
+      console.log('  token:', localStorage.getItem('token') ? 'EXISTS' : 'MISSING');
+      console.log('  user:', localStorage.getItem('user') ? 'EXISTS' : 'MISSING');
+      console.log('  userRoles:', localStorage.getItem('userRoles') ? 'EXISTS' : 'MISSING');
+      
       dispatchRoleChangeEvent();
 
       if (roles.includes('ROLE_ADMIN')) navigate('/admin');
