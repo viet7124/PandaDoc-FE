@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   getPendingPayouts, 
   getPayoutHistory, 
@@ -15,6 +16,37 @@ export default function PayoutManagement() {
   console.log('🎯 PayoutManagement component rendered');
   const toast = useToast();
   const { confirm } = useConfirm();
+  const navigate = useNavigate();
+  
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('🔒 No authentication token found, redirecting to login');
+      toast.error('Authentication Required', 'Please login to access admin functions');
+      navigate('/login');
+      return;
+    }
+    
+    // Check if user has admin role
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        const hasAdminRole = user.roles && user.roles.includes('ROLE_ADMIN');
+        if (!hasAdminRole) {
+          console.log('🔒 User does not have ROLE_ADMIN, redirecting to login');
+          toast.error('Access Denied', 'Admin privileges required');
+          navigate('/login');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user roles:', error);
+      navigate('/login');
+      return;
+    }
+  }, [navigate, toast]);
   
   // State
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
