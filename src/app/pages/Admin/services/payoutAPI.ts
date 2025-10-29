@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAuthHeaders } from '../../../utils/authUtils';
+
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api';
 
