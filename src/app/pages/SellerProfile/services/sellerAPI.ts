@@ -1,6 +1,16 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api'
+
+const getAuthHeadersLocal = () => {
+  try {
+    return getAuthHeaders();
+  } catch (error) {
+    console.error('❌ Authentication error:', error);
+    throw error;
+  }
+};
 
 // Register as a seller
 export interface RegisterSellerData {
@@ -10,10 +20,9 @@ export interface RegisterSellerData {
 
 export const registerSeller = async (data: RegisterSellerData): Promise<void> => {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios.post(`${API_URL}/sellers/register`, data, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'Content-Type': 'application/json',
       },
     });
@@ -46,18 +55,13 @@ export interface UpdateSellerProfileData {
 // Get seller profile
 export const getSellerProfile = async (): Promise<SellerProfile> => {
   try {
-    const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userId = user.id;
     
     console.log('🔍 Fetching seller profile for user:', userId);
     console.log('🔍 User data from localStorage:', user);
-    console.log('🔍 Token exists:', !!token);
+    console.log('🔍 Token exists:', !!localStorage.getItem('token'));
     console.log('🔍 API URL:', `${API_URL}/sellers/profile`);
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
     
     if (!userId) {
       throw new Error('No user ID found');
@@ -69,7 +73,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
       console.log('🔄 Trying main seller profile endpoint...');
       response = await axios.get<SellerProfile>(`${API_URL}/sellers/profile`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeadersLocal(),
           'ngrok-skip-browser-warning': 'true'
         },
         timeout: 10000
@@ -83,7 +87,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
         console.log('🔄 Trying alternative endpoint with user ID...');
         response = await axios.get<SellerProfile>(`${API_URL}/sellers/profile/${userId}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            ...getAuthHeadersLocal(),
             'ngrok-skip-browser-warning': 'true'
           },
           timeout: 10000
@@ -107,7 +111,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
         // Try user profile endpoint as last resort
         response = await axios.get<UserProfileResponse>(`${API_URL}/users/me/profile`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            ...getAuthHeadersLocal(),
             'ngrok-skip-browser-warning': 'true'
           },
           timeout: 10000
@@ -220,16 +224,12 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
 // Update seller profile
 export const updateSellerProfile = async (data: UpdateSellerProfileData): Promise<void> => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication required. Please login again.');
-    }
     
     console.log('🔄 Sending update request with data:', data);
     
     const response = await axios.put(`${API_URL}/sellers/profile`, data, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true'
       },
@@ -283,7 +283,7 @@ export const getSellerDashboard = async (): Promise<SellerDashboard> => {
     const token = localStorage.getItem('token');
     const response = await axios.get<SellerDashboard>(`${API_URL}/sellers/dashboard`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
       },
     });
     return response.data;
@@ -347,7 +347,7 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
     // Fetch all templates - backend should return only user's templates when authenticated
     const response = await axios.get(`${API_URL}/templates`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true'
       },
       params: {
@@ -433,7 +433,7 @@ export const getSellerEarnings = async () => {
     const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/sellers/earnings`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
       },
     });
     return response.data;
@@ -449,7 +449,7 @@ export const getSellerStats = async () => {
     const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/sellers/stats`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
       },
     });
     return response.data;
@@ -471,7 +471,7 @@ export const getCategories = async (): Promise<Category[]> => {
     const token = localStorage.getItem('token');
     const response = await axios.get<Category[]>(`${API_URL}/templates/categories`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -540,7 +540,7 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<unkno
     const token = localStorage.getItem('token');
     const response = await axios.post(`${API_URL}/templates/upload`, formData, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true',
         // Don't set Content-Type, let browser set it with boundary
       },
@@ -573,7 +573,7 @@ export const updateTemplate = async (templateId: number, templateData: FormData)
     const token = localStorage.getItem('token');
     const response = await axios.put(`${API_URL}/sellers/templates/${templateId}`, templateData, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         // Don't set Content-Type for FormData, let browser set it with boundary
       },
     });
@@ -592,7 +592,7 @@ export const deleteTemplate = async (templateId: number): Promise<void> => {
     
     const response = await axios.delete(`${API_URL}/templates/${templateId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -641,7 +641,7 @@ export const getSalesHistory = async (page: number = 1, limit: number = 10) => {
     const response = await axios.get(`${API_URL}/sellers/sales`, {
       params: { page, limit },
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
       },
     });
     return response.data;
@@ -660,7 +660,7 @@ export const requestWithdrawal = async (amount: number, method: string) => {
       { amount, method },
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeadersLocal(),
         },
       }
     );
@@ -722,7 +722,7 @@ export const getSellerPayouts = async (): Promise<SellerPayout[]> => {
     const token = localStorage.getItem('token');
     const response = await axios.get<SellerPayout[]>(`${API_URL}/sellers/payouts`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -796,7 +796,7 @@ export const getEarningsSummary = async (): Promise<EarningsSummary> => {
     // Use the correct dashboard endpoint that returns totalEarnings
     const response = await axios.get(`${API_URL}/sellers/dashboard`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...getAuthHeadersLocal(),
         'ngrok-skip-browser-warning': 'true'
       },
     });

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -90,51 +91,13 @@ interface UpdateTemplateRequest {
   status?: 'PUBLISHED' | 'PENDING' | 'REJECTED' | 'APPROVED';
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    console.error('No authentication token found');
-    throw new Error('Authentication required. Please login again.');
-  }
-  
-  // Check if token is expired (basic check)
+const getAuthHeadersLocal = () => {
   try {
-    const tokenData = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Date.now() / 1000;
-    
-    console.log('🔐 Token payload:', tokenData);
-    console.log('🔐 Token roles/authorities:', tokenData.authorities || tokenData.roles || 'No roles found');
-    
-    // Check if user has admin role in token
-    const tokenRoles = tokenData.authorities || tokenData.roles || [];
-    const hasAdminRole = Array.isArray(tokenRoles) && tokenRoles.some((role: string | { authority: string }) => 
-      role === 'ROLE_ADMIN' || (typeof role === 'object' && role.authority === 'ROLE_ADMIN') || role === 'ADMIN'
-    );
-    
-    if (!hasAdminRole) {
-      console.error('❌ Access denied - ROLE_ADMIN required but not found');
-      console.error('❌ Available roles:', tokenRoles);
-      console.error('❌ User subject:', tokenData.sub);
-      throw new Error('Access denied. ROLE_ADMIN required.');
-    }
-    
-    if (tokenData.exp && tokenData.exp < currentTime) {
-      console.error('Token has expired');
-      localStorage.removeItem('token');
-      throw new Error('Session expired. Please login again.');
-    }
-  } catch {
-    console.error('Invalid token format');
-    localStorage.removeItem('token');
-    throw new Error('Invalid session. Please login again.');
+    return getAuthHeadersLocal();
+  } catch (error) {
+    console.error('❌ Authentication error:', error);
+    throw error;
   }
-  
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true',
-    'Content-Type': 'application/json'
-  };
 };
 
 // Get all templates (with optional status filter)
@@ -149,7 +112,7 @@ export const getAllTemplates = async (status?: string, page: number = 0, size: n
     console.log('GET Admin Templates URL:', fullUrl);
     
     const response = await axios.get<TemplatesResponse>(fullUrl, {
-      headers: getAuthHeaders(),
+      headers: getAuthHeadersLocal(),
       timeout: 10000
     });
     
@@ -172,7 +135,7 @@ export const getAllTemplates = async (status?: string, page: number = 0, size: n
 export const getTemplateById = async (id: number): Promise<Template> => {
   try {
     const response = await axios.get<Template>(`${url}/templates/${id}`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeadersLocal()
     });
     return response.data;
   } catch (error) {
@@ -218,7 +181,7 @@ export const createTemplate = async (data: CreateTemplateRequest): Promise<Templ
 
     const response = await axios.post<Template>(`${url}/templates`, formData, {
       headers: {
-        ...getAuthHeaders()
+        ...getAuthHeadersLocal()
         // Don't set Content-Type for FormData, let browser set it with boundary
       }
     });
@@ -236,7 +199,7 @@ export const updateTemplate = async (id: number, data: UpdateTemplateRequest): P
   try {
     // Use template controller for template updates
     const response = await axios.put<Template>(`${url}/templates/${id}`, data, {
-      headers: getAuthHeaders(),
+      headers: getAuthHeadersLocal(),
       timeout: 10000
     });
     
@@ -266,7 +229,7 @@ export const deleteTemplate = async (id: number): Promise<void> => {
     const fullUrl = `${url}/templates/${id}`;
     console.log('🗑️ DELETE Template URL:', fullUrl);
 
-    const headers = getAuthHeaders();
+    const headers = getAuthHeadersLocal();
     console.log('🗑️ Headers being sent:', headers);
 
     await axios.delete(fullUrl, {
@@ -310,7 +273,7 @@ export const updateTemplateStatus = async (
 ): Promise<void> => {
   try {
     const fullUrl = `${url}/admin/templates/${id}/status?status=${encodeURIComponent(status)}`;
-    await axios.put(fullUrl, {}, { headers: getAuthHeaders(), timeout: 10000 });
+    await axios.put(fullUrl, {}, { headers: getAuthHeadersLocal(), timeout: 10000 });
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 400) {
@@ -345,7 +308,7 @@ export const rejectTemplate = async (id: number): Promise<void> => {
 export const getCategories = async (): Promise<Category[]> => {
   try {
     const response = await axios.get<Category[]>(`${url}/templates/categories`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeadersLocal()
     });
     return response.data;
   } catch (error) {
@@ -360,7 +323,7 @@ export const getCategories = async (): Promise<Category[]> => {
 export const downloadTemplate = async (id: number): Promise<{ blob: Blob; filename: string }> => {
   try {
     const response = await axios.get(`${url}/templates/${id}/download`, {
-      headers: getAuthHeaders(),
+      headers: getAuthHeadersLocal(),
       responseType: 'blob'
     });
     
@@ -397,7 +360,7 @@ export const downloadTemplate = async (id: number): Promise<{ blob: Blob; filena
 export const getTemplatePreview = async (id: number): Promise<string[]> => {
   try {
     const response = await axios.get<string[]>(`${url}/templates/${id}/preview`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeadersLocal()
     });
     return response.data;
   } catch (error) {
@@ -410,7 +373,7 @@ export const getTemplatePreview = async (id: number): Promise<string[]> => {
 export const getPopularTemplates = async (): Promise<Template[]> => {
   try {
     const response = await axios.get<Template[]>(`${url}/templates/popular`, {
-      headers: getAuthHeaders()
+      headers: getAuthHeadersLocal()
     });
     return response.data;
   } catch (error) {
@@ -472,7 +435,7 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
     });
 
     console.log('🔐 Getting auth headers...');
-    const authHeaders = getAuthHeaders();
+    const authHeaders = getAuthHeadersLocal();
     console.log('🔐 Auth headers obtained:', Object.keys(authHeaders));
 
     console.log('📡 Making request to:', `${url}/templates/upload`);
