@@ -61,6 +61,13 @@ export default function SearchPage() {
   const query = searchParams.get('q') || searchParams.get('query') || '';
   const itemsPerPage = 12;
 
+  // Redirect to templates page if no search query
+  useEffect(() => {
+    if (!query) {
+      navigate('/templates');
+    }
+  }, [query, navigate]);
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -144,6 +151,10 @@ export default function SearchPage() {
     setSelectedCategories([]);
     setSelectedLicenses([]);
     setCurrentPage(1);
+    // If there's a search query, clear it and redirect to templates page
+    if (query) {
+      navigate('/templates');
+    }
   };
 
   const handleBack = () => {

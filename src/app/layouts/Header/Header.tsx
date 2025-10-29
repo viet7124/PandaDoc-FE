@@ -119,8 +119,13 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) {
-                      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                    if (e.key === 'Enter') {
+                      if (searchQuery.trim()) {
+                        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                      } else {
+                        // If search is empty, go to templates page
+                        navigate('/templates');
+                      }
                     }
                   }}
                   placeholder="business report"
