@@ -260,12 +260,14 @@ export default function Login() {
             title="Terms of Service" 
             content={TERMS_OF_SERVICE_CONTENT}
             trigger="Terms of Service"
+            position="right"
           />
           {' '}and{' '}
           <LegalDocumentModal 
             title="Privacy Policy" 
             content={PRIVACY_POLICY_CONTENT}
             trigger="Privacy Policy"
+            position="left"
           />
         </p>
       </div>
