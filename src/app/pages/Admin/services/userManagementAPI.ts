@@ -20,7 +20,7 @@ export interface UserActivity {
   timestamp: string;
 }
 
-interface UsersResponse {
+export interface UsersResponse {
   content: User[];
   pageable: {
     pageNumber: number;
@@ -52,6 +52,23 @@ export const getAllUsers = async (page: number = 0, size: number = 100): Promise
     return response.data.content || [];
   } catch (error) {
     console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+/**
+ * GET /api/admin/users (paged)
+ * Returns full page info for pagination controls
+ */
+export const getUsersPage = async (page: number = 0, size: number = 20): Promise<UsersResponse> => {
+  try {
+    const response = await axios.get<UsersResponse>(`${url}/admin/users`, {
+      headers: getAuthHeaders(),
+      params: { page, size }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching users page:', error);
     throw error;
   }
 };

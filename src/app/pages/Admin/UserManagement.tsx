@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { 
   getAllUsers, 
+  getUsersPage,
   updateUser, 
   deleteUser, 
   updateUserStatus,
   getUserActivity,
   type User,
-  type UserActivity
+  type UserActivity,
+  type UsersResponse
 } from './services/userManagementAPI';
+import Pagination from '../../components/Pagination';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
@@ -19,6 +22,10 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  // server pagination
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   
   // Modals
   const [showEditModal, setShowEditModal] = useState(false);
@@ -37,7 +44,7 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page, pageSize]);
 
   useEffect(() => {
     filterUsers();
@@ -46,8 +53,9 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await getAllUsers();
-      setUsers(data);
+      const result = await getUsersPage(page, pageSize);
+      setUsers(result.content || []);
+      setTotalPages(result.totalPages || 1);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Error Loading Users', 'Failed to load users');
@@ -411,6 +419,18 @@ export default function UserManagement() {
               </tbody>
             </table>
           )}
+        </div>
+        <div className="px-4">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setPage(0);
+            }}
+          />
         </div>
       </div>
 
