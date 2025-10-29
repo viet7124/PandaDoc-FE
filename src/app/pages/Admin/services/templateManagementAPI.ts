@@ -118,22 +118,33 @@ const getAuthHeadersLocal = () => {
       userRoles = userRolesString ? JSON.parse(userRolesString) : [];
     } catch (error) {
       console.error('Error parsing user roles from localStorage:', error);
+      // Don't throw here, just log the error and continue
     }
     
     console.log('🔐 User roles from localStorage:', userRoles);
+    console.log('🔐 User roles type:', typeof userRoles, 'isArray:', Array.isArray(userRoles));
     
-    const hasAdminRole = userRoles.includes('ROLE_ADMIN');
+    const hasAdminRole = Array.isArray(userRoles) && userRoles.includes('ROLE_ADMIN');
     
     if (!hasAdminRole) {
       console.error('❌ Access denied - ROLE_ADMIN required but not found');
       console.error('❌ Available roles:', userRoles);
       console.error('❌ User subject:', tokenData.sub);
+      console.error('❌ Full localStorage state:', {
+        token: !!localStorage.getItem('token'),
+        user: localStorage.getItem('user'),
+        userRoles: localStorage.getItem('userRoles'),
+        username: localStorage.getItem('username'),
+        email: localStorage.getItem('email')
+      });
       throw new Error('Access denied. ROLE_ADMIN required.');
     }
     
+    console.log('✅ Admin role validation passed');
+    
   } catch (error) {
     console.error('Invalid token format or role check failed:', error);
-    localStorage.removeItem('token');
+    // Don't remove token here - let the calling function decide
     throw new Error('Invalid session. Please login again.');
   }
   
@@ -141,6 +152,36 @@ const getAuthHeadersLocal = () => {
     'Authorization': `Bearer ${token}`,
     'ngrok-skip-browser-warning': 'true',
     'Content-Type': 'application/json'
+  };
+};
+
+// Simple auth headers without role validation (for uploads)
+const getSimpleAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  
+  // Basic token validation only
+  try {
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    
+    if (tokenData.exp && tokenData.exp < currentTime) {
+      console.error('Token has expired');
+      localStorage.removeItem('token');
+      throw new Error('Session expired. Please login again.');
+    }
+  } catch (error) {
+    console.error('Invalid token format:', error);
+    localStorage.removeItem('token');
+    throw new Error('Invalid session. Please login again.');
+  }
+  
+  return {
+    'Authorization': `Bearer ${token}`,
+    'ngrok-skip-browser-warning': 'true'
   };
 };
 
@@ -479,7 +520,7 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
     });
 
     console.log('🔐 Getting auth headers...');
-    const authHeaders = getAuthHeadersLocal();
+    const authHeaders = getSimpleAuthHeaders();
     console.log('🔐 Auth headers obtained:', Object.keys(authHeaders));
 
     console.log('📡 Making request to:', `${url}/templates/upload`);
