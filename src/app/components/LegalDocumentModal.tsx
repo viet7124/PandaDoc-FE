@@ -55,12 +55,12 @@ export default function LegalDocumentModal({ title, content, trigger, position =
           <div 
             className={`fixed top-1/2 transform -translate-y-1/2 z-50 ${
               position === 'right' 
-                ? 'right-8' 
-                : 'left-8'
+                ? 'right-[25%]' 
+                : 'left-[25%]'
             }`}
           >
             <div 
-              className="bg-white rounded-3xl w-80 max-h-[70vh] flex flex-col shadow-2xl animate-scale-in"
+              className="bg-white rounded-3xl w-96 max-h-[75vh] flex flex-col shadow-2xl animate-scale-in"
               onClick={(e) => e.stopPropagation()}
             >
             {/* Header */}
