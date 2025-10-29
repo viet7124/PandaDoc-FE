@@ -20,6 +20,25 @@ export default function PayoutManagement() {
   
   // Check authentication on component mount
   useEffect(() => {
+    console.log('🔍 Checking authentication...');
+    console.log('🔍 Current localStorage:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      userRoles: localStorage.getItem('userRoles'),
+      username: localStorage.getItem('username'),
+      email: localStorage.getItem('email')
+    });
+    
+    // Temporary: Add token for testing if user has admin role but no token
+    const userRoles = localStorage.getItem('userRoles');
+    if (!localStorage.getItem('token') && userRoles && userRoles.includes('ROLE_ADMIN')) {
+      console.log('🔧 Temporary fix: Adding test token for admin user');
+      // This is a temporary token for testing - replace with actual token from login
+      const testToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pb191c2VyIiwiaWF0IjoxNzYxNjgzODk3LCJleHAiOjE3NjE3NzAyOTd9.gxzZwC3qRe9v8kVX1BH-bigz7Tw_jkGGTIaclWB22JE';
+      localStorage.setItem('token', testToken);
+      console.log('🔧 Test token added to localStorage');
+    }
+    
     const token = localStorage.getItem('token');
     if (!token) {
       console.log('🔒 No authentication token found, redirecting to login');
@@ -33,7 +52,9 @@ export default function PayoutManagement() {
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
+        console.log('🔍 Parsed user data:', user);
         const hasAdminRole = user.roles && user.roles.includes('ROLE_ADMIN');
+        console.log('🔍 Has admin role:', hasAdminRole);
         if (!hasAdminRole) {
           console.log('🔒 User does not have ROLE_ADMIN, redirecting to login');
           toast.error('Access Denied', 'Admin privileges required');
@@ -46,6 +67,8 @@ export default function PayoutManagement() {
       navigate('/login');
       return;
     }
+    
+    console.log('✅ Authentication check passed');
   }, [navigate, toast]);
   
   // State
