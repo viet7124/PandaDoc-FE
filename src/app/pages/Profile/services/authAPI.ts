@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -17,13 +18,7 @@ export interface UserProfile {
   bio?: string;
 }
 
-const getAuthHeadersLocal = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// Use shared auth header builder that supports session/local storage
 
 /**
  * Helper function to construct full avatar URL
@@ -53,7 +48,7 @@ export const getCurrentUser = async (): Promise<UserProfile> => {
     console.log('Fetching current user from:', `${url}/users/me/profile`);
     
     const response = await axios.get<UserProfile>(`${url}/users/me/profile`, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('✅ Current user response:', response.data);
@@ -95,10 +90,7 @@ export const updateProfile = async (
     console.log('📤 Sending request to:', `${url}/users/me/profile`);
     
     const response = await axios.put<UserProfile>(`${url}/users/me/profile`, formData, {
-      headers: {
-        ...getAuthHeadersLocal()
-        // Don't set Content-Type for FormData, let browser set it with boundary
-      }
+      headers: getAuthHeaders()
     });
     
     console.log('✅ Update profile response:', response.data);
