@@ -3,32 +3,8 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api';
 
-// Add axios interceptor to handle OAuth2 redirects
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.log('🔍 401/403 Error - Authentication required');
-      console.log('🔍 Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        method: error.config?.method
-      });
-      
-      // Add delay to allow logs to be seen before redirect
-      console.log('🔍 Redirecting to login page in 3 seconds...');
-      setTimeout(() => {
-        console.log('🔍 Redirecting to login page instead of OAuth2 to avoid CORS issues');
-        window.location.href = '/login';
-      }, 3000);
-      
-      return Promise.reject(error);
-    }
-    return Promise.reject(error);
-  }
-);
+// Note: Removed global axios interceptor to prevent unwanted redirects
+// Individual API calls now handle their own error cases
 
 // Payout interfaces
 export interface PendingPayout {
