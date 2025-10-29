@@ -139,6 +139,27 @@ export default function Profile() {
       await updateProfile(editedName, selectedAvatar || undefined);
       const refreshed = await getCurrentUser();
       setUserProfile(refreshed);
+      
+      // Update localStorage/sessionStorage with new user data so header can pick it up
+      const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
+      const currentUser = storage.getItem('user');
+      if (currentUser) {
+        try {
+          const userData = JSON.parse(currentUser);
+          const updatedUserData = {
+            ...userData,
+            avatar: refreshed.avatar,
+            name: refreshed.name
+          };
+          storage.setItem('user', JSON.stringify(updatedUserData));
+          
+          // Dispatch custom event to notify header
+          window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { avatar: refreshed.avatar } }));
+        } catch (e) {
+          console.error('Error updating cached user data:', e);
+        }
+      }
+      
       setIsEditing(false);
       setSelectedAvatar(null);
       setAvatarPreview(null);
@@ -225,12 +246,12 @@ export default function Profile() {
           <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700"> Username</label>
                 {isEditing ? (
                   <input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} placeholder="Enter your full name" className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors" />
                 ) : (
                   <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                    <p className="text-gray-900 font-medium">{userProfile.name || userProfile.username}</p>
+                    <p className="text-gray-900 font-medium">{userProfile.username}</p>
                   </div>
                 )}
               </div>

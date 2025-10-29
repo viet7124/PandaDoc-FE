@@ -31,30 +31,54 @@ export default function Header() {
     };
   }, []);
 
+  // Load avatar function
+  const loadAvatar = async () => {
+    try {
+      // Optimistic load from cached localStorage/sessionStorage user first
+      try {
+        const cached = localStorage.getItem('user') || sessionStorage.getItem('user');
+        if (cached) {
+          const u = JSON.parse(cached);
+          const cachedUrl = getAvatarUrl(u.avatar);
+          if (cachedUrl) setAvatarUrl(cachedUrl);
+        }
+      } catch {}
+
+      // Then fetch fresh profile to ensure latest avatar
+      const data = await getCurrentUser();
+      const freshUrl = getAvatarUrl(data.avatar);
+      if (freshUrl) {
+        setAvatarUrl(freshUrl);
+      } else {
+        setAvatarUrl(undefined); // Clear if no avatar
+      }
+    } catch (e) {
+      // ignore, will fallback to icon
+    }
+  };
+
   // Load avatar when header mounts
   useEffect(() => {
-    const loadAvatar = async () => {
-      try {
-        // Optimistic load from cached localStorage user first
-        try {
-          const cached = localStorage.getItem('user');
-          if (cached) {
-            const u = JSON.parse(cached);
-            const cachedUrl = getAvatarUrl(u.avatar);
-            if (cachedUrl) setAvatarUrl(cachedUrl);
-          }
-        } catch {}
-
-        // Then fetch fresh profile to ensure latest avatar
-        const data = await getCurrentUser();
-        const freshUrl = getAvatarUrl(data.avatar);
-        if (freshUrl) setAvatarUrl(freshUrl);
-      } catch (e) {
-        // ignore, will fallback to icon
-      }
-    };
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) loadAvatar();
+  }, []);
+
+  // Listen for avatar updates from Profile page
+  useEffect(() => {
+    const handleAvatarUpdate = (event: CustomEvent) => {
+      const newAvatar = event.detail?.avatar;
+      if (newAvatar) {
+        const url = getAvatarUrl(newAvatar);
+        setAvatarUrl(url || undefined);
+      } else {
+        loadAvatar(); // Reload from API to get fresh data
+      }
+    };
+
+    window.addEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate as EventListener);
+    };
   }, []);
 
   // Apply selected language to <html lang>
