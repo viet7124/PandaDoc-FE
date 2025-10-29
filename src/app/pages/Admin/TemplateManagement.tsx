@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   getAllTemplates, 
   rejectTemplate, 
@@ -38,6 +39,38 @@ interface PayoutFormData {
 export default function TemplateManagement() {
   const toast = useToast();
   const { confirm } = useConfirm();
+  const navigate = useNavigate();
+  
+  // Check authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('🔒 No authentication token found, redirecting to login');
+      toast.error('Authentication Required', 'Please login to access admin functions');
+      navigate('/login');
+      return;
+    }
+    
+    // Check if user has admin role
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        const hasAdminRole = user.roles && user.roles.includes('ROLE_ADMIN');
+        if (!hasAdminRole) {
+          console.log('🔒 User does not have ROLE_ADMIN, redirecting to login');
+          toast.error('Access Denied', 'Admin privileges required');
+          navigate('/login');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user roles:', error);
+      navigate('/login');
+      return;
+    }
+  }, [navigate, toast]);
+  
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
