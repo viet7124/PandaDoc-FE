@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
-  getAllUsers, 
   getUsersPage,
   updateUser, 
   deleteUser, 
   updateUserStatus,
   getUserActivity,
   type User,
-  type UserActivity,
-  type UsersResponse
+  type UserActivity
 } from './services/userManagementAPI';
 import Pagination from '../../components/Pagination';
 import { useToast } from '../../contexts/ToastContext';
