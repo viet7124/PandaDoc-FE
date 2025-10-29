@@ -4,7 +4,7 @@ import { login } from './services/authAPI';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
-import { setAuthData, UserData } from '../../utils/authUtils';
+import { setAuthData, type UserData } from '../../utils/authUtils';
 import { AuthDebugger } from '../../components/AuthDebugger';
 
 export default function Login() {

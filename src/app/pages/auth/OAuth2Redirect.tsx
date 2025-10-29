@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
-import { setAuthData, UserData } from '../../utils/authUtils';
+import { setAuthData, type UserData } from '../../utils/authUtils';
 
 export default function OAuth2Redirect() {
   const navigate = useNavigate();
