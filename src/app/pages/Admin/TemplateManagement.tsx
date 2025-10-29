@@ -516,7 +516,25 @@ export default function TemplateManagement() {
       }
     } catch (error) {
       console.error('Error uploading template:', error);
-      toast.error('Upload Failed', 'An error occurred while uploading the template');
+      
+      // Check if it's an authentication error
+      if (error instanceof Error && (
+        error.message.includes('Authentication') || 
+        error.message.includes('Session expired') ||
+        error.message.includes('Invalid session') ||
+        error.message.includes('Server redirected')
+      )) {
+        toast.error('Session Expired', 'Your session has expired. Please login again.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else if (error instanceof Error && error.message.includes('multipart')) {
+        toast.error('Upload Failed', 'Invalid file format. Please ensure the file is properly attached.');
+      } else if (error instanceof Error && error.message.includes('File too large')) {
+        toast.error('Upload Failed', 'File is too large. Maximum file size is 50MB.');
+      } else {
+        toast.error('Upload Failed', error instanceof Error ? error.message : 'An error occurred while uploading the template');
+      }
     } finally {
       setIsProcessing(false);
     }

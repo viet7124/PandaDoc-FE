@@ -112,6 +112,7 @@ const getAuthHeaders = () => {
     }
     
     if (!allowAccess) {
+      console.error('❌ Access denied - Admin role required but not found');
       throw new Error('Access denied. Admin role required.');
     }
     
@@ -418,6 +419,13 @@ export const getPopularTemplates = async (): Promise<Template[]> => {
 // Upload template with file (Admin)
 export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Template> => {
   try {
+    console.log('🚀 Starting template upload...');
+    console.log('📁 File details:', {
+      name: data.file.name,
+      size: data.file.size,
+      type: data.file.type
+    });
+    
     const formData = new FormData();
     formData.append('file', data.file);
     formData.append('title', data.title);
@@ -425,6 +433,14 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
     formData.append('price', data.price);
     formData.append('categoryId', data.categoryId);
     formData.append('isPremium', (data.isPremium || false).toString());
+    
+    console.log('📋 FormData contents:', {
+      title: data.title,
+      description: data.description,
+      price: data.price,
+      categoryId: data.categoryId,
+      isPremium: data.isPremium
+    });
 
     // Check if current user is admin and automatically set status to PUBLISHED
     const userRolesString = localStorage.getItem('userRoles');
@@ -452,9 +468,14 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<Templ
       status: isAdmin ? 'PUBLISHED' : 'PENDING_REVIEW'
     });
 
+    console.log('🔐 Getting auth headers...');
+    const authHeaders = getAuthHeaders();
+    console.log('🔐 Auth headers obtained:', Object.keys(authHeaders));
+
+    console.log('📡 Making request to:', `${url}/templates/upload`);
     const response = await axios.post<Template>(`${url}/templates/upload`, formData, {
       headers: {
-        ...getAuthHeaders()
+        ...authHeaders
         // Don't set Content-Type for FormData, let browser set it with boundary
       }
     });
