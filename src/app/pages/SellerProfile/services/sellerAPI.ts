@@ -1,14 +1,9 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api'
 
-const getAuthHeadersLocal = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+const getAuthHeadersLocal = () => getAuthHeaders();
 
 // Register as a seller
 export interface RegisterSellerData {

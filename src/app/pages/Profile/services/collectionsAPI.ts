@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -30,13 +31,7 @@ export interface Collection {
   templates: Template[];
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// use shared getAuthHeaders to support session/local tokens
 
 // Get all collections of current user
 export const getCollections = async (): Promise<Collection[]> => {

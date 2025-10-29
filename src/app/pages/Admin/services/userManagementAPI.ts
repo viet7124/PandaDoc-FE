@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -31,13 +32,7 @@ interface UsersResponse {
   first: boolean;
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// use shared getAuthHeaders to support session/local tokens
 
 /**
  * GET /api/admin/users

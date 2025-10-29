@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api'
 console.log('🌐 Base URL:', import.meta.env.VITE_BASE_URL);
@@ -46,13 +47,7 @@ interface TemplatesResponse {
   first: boolean;
 }
 
-const getAuthHeadersLocal = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+const getAuthHeadersLocal = () => getAuthHeaders();
 
 export const getTemplates = async (): Promise<TemplatesResponse> => {
   try {
@@ -384,13 +379,9 @@ export const uploadPreviewImages = async (id: number, files: File[]): Promise<vo
       });
     });
     
-    const token = localStorage.getItem('token');
-    console.log('Token present:', !!token);
-    
     const response = await axios.post(fullUrl, formData, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'ngrok-skip-browser-warning': 'true',
+        ...getAuthHeaders(),
         // Note: Don't set Content-Type for FormData, let browser set it with boundary
       }
     });

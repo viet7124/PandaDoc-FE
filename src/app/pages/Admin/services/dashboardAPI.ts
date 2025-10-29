@@ -1,14 +1,9 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+// use shared getAuthHeaders
 
 export interface DashboardData {
   dailyUsers: number;
