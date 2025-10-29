@@ -33,8 +33,8 @@ export default function LegalDocumentModal({ title, content, trigger, position =
 
   // Determine positioning classes based on position prop
   const positionClasses = position === 'right' 
-    ? 'items-center justify-end pr-8' 
-    : 'items-center justify-start pl-8';
+    ? 'items-center justify-end pr-4' 
+    : 'items-center justify-start pl-4';
 
   return (
     <>
@@ -54,7 +54,7 @@ export default function LegalDocumentModal({ title, content, trigger, position =
           onClick={closeModal}
         >
           <div 
-            className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-scale-in mx-4"
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-scale-in mx-2"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
