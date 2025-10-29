@@ -802,7 +802,10 @@ export default function TemplateManagement() {
                     </div>
                     
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {template.description}
+                      {template.description.length > 120 
+                        ? `${template.description.substring(0, 120)}...` 
+                        : template.description
+                      }
                     </p>
                     
                     <div className="space-y-2 mb-4">
