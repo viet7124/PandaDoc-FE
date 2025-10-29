@@ -8,9 +8,21 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       console.log('🔍 401/403 Error - Authentication required');
-      // Instead of redirecting to OAuth2 (which causes CORS), redirect to login page
-      console.log('🔍 Redirecting to login page instead of OAuth2 to avoid CORS issues');
-      window.location.href = '/login';
+      console.log('🔍 Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        method: error.config?.method
+      });
+      
+      // Add delay to allow logs to be seen before redirect
+      console.log('🔍 Redirecting to login page in 3 seconds...');
+      setTimeout(() => {
+        console.log('🔍 Redirecting to login page instead of OAuth2 to avoid CORS issues');
+        window.location.href = '/login';
+      }, 3000);
+      
       return Promise.reject(error);
     }
     return Promise.reject(error);
