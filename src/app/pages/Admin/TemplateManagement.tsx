@@ -17,6 +17,7 @@ import { useConfirm } from '../../contexts/ConfirmContext';
 import { createTemplatePayout } from './services/payoutAPI';
 import { trySendNotification } from '../Notification/services/notificationAPI';
 import type { CreatePayoutRequest } from './services/payoutAPI';
+import { getAuthState } from '../../utils/authUtils';
 
 interface Category {
   id: number;
@@ -44,7 +45,7 @@ export default function TemplateManagement() {
   
   // Check authentication on component mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const { token, roles } = getAuthState();
     if (!token) {
       console.log('🔒 No authentication token found, redirecting to login');
       toast.error('Authentication Required', 'Please login to access admin functions');
@@ -54,16 +55,12 @@ export default function TemplateManagement() {
     
     // Check if user has admin role
     try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        const hasAdminRole = user.roles && user.roles.includes('ROLE_ADMIN');
-        if (!hasAdminRole) {
+      const hasAdminRole = roles && roles.includes('ROLE_ADMIN');
+      if (!hasAdminRole) {
           console.log('🔒 User does not have ROLE_ADMIN, redirecting to login');
           toast.error('Access Denied', 'Admin privileges required');
           navigate('/login');
           return;
-        }
       }
     } catch (error) {
       console.error('Error checking user roles:', error);

@@ -11,6 +11,7 @@ import type { PendingPayout, PayoutHistory, CreatePayoutRequest } from './servic
 import type { Template } from './services/templateManagementAPI';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
+import { getAuthState } from '../../utils/authUtils';
 
 export default function PayoutManagement() {
   console.log('🎯 PayoutManagement component rendered');
@@ -21,21 +22,14 @@ export default function PayoutManagement() {
   // Check authentication on component mount
   useEffect(() => {
     console.log('🔍 Checking authentication...');
-    console.log('🔍 Current localStorage:', {
-      token: localStorage.getItem('token'),
-      user: localStorage.getItem('user'),
-      userRoles: localStorage.getItem('userRoles'),
-      username: localStorage.getItem('username'),
-      email: localStorage.getItem('email')
-    });
+    const { token, user, roles } = getAuthState();
+    console.log('🔍 Current auth state:', { hasToken: !!token, user, roles });
     
     // Check if user has admin role but no token (should redirect to login)
-    const userRoles = localStorage.getItem('userRoles');
-    if (!localStorage.getItem('token') && userRoles && userRoles.includes('ROLE_ADMIN')) {
+    if (!token && roles.includes('ROLE_ADMIN')) {
       console.log('⚠️ Admin user detected but no token found - redirecting to login');
     }
     
-    const token = localStorage.getItem('token');
     if (!token) {
       console.log('🔒 No authentication token found, redirecting to login');
       toast.error('Authentication Required', 'Please login to access admin functions');
@@ -45,11 +39,8 @@ export default function PayoutManagement() {
     
     // Check if user has admin role
     try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        console.log('🔍 Parsed user data:', user);
-        const hasAdminRole = user.roles && user.roles.includes('ROLE_ADMIN');
+      if (user) {
+        const hasAdminRole = roles && roles.includes('ROLE_ADMIN');
         console.log('🔍 Has admin role:', hasAdminRole);
         if (!hasAdminRole) {
           console.log('🔒 User does not have ROLE_ADMIN, redirecting to login');
