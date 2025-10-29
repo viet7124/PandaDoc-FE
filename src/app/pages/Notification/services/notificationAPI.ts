@@ -1,13 +1,9 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`
-  };
-};
+// use shared auth headers to support session/local tokens
 
 export interface Notification {
   id: number;
@@ -81,5 +77,45 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
     console.error('Error marking all notifications as read:', error);
     throw error;
   }
+};
+
+/**
+ * Optionally send a notification (backend may or may not expose this)
+ * We attempt a POST to /api/admin/notifications or /api/notifications
+ * and swallow 404/405 errors so UI flow is not broken in environments
+ * where sending is not enabled yet.
+ */
+export interface SendNotificationRequest {
+  username?: string; // target user by username (admin flows)
+  userId?: number;   // alternative target by userId
+  title: string;
+  message: string;
+  type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+  link?: string;
+}
+
+export const trySendNotification = async (payload: SendNotificationRequest): Promise<boolean> => {
+  const endpoints = [
+    `${url}/admin/notifications`,
+    `${url}/notifications`
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      await axios.post(endpoint, payload, { headers: getAuthHeaders() });
+      return true;
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        const status = e.response?.status;
+        if (status && (status === 404 || status === 405)) {
+          // Endpoint not available; try next
+          continue;
+        }
+      }
+      // Other errors mean endpoint exists but failed, stop trying
+      break;
+    }
+  }
+  return false;
 };
 

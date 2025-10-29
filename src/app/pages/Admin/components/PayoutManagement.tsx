@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, Clock, CheckCircle, AlertCircle, Eye, CreditCard } from 'lucide-react';
+import { trySendNotification } from '../../Notification/services/notificationAPI';
 import { 
   getPendingPayouts, 
   markPayoutAsPaid, 
@@ -58,6 +59,14 @@ export default function PayoutManagement() {
       setProcessing(payoutId);
       await markPayoutAsPaid(payoutId);
       toast.success('Payout Updated', `Payout of ${amount.toLocaleString('vi-VN')} VND has been marked as paid. Seller has been notified.`);
+      // Best-effort notification
+      trySendNotification({
+        username: sellerName,
+        title: 'Payout Paid',
+        message: `Your payout of ${amount.toLocaleString('vi-VN')} VND has been marked as PAID.`,
+        type: 'SUCCESS',
+        link: '/seller-profile?tab=earnings'
+      });
       await fetchData(); // Refresh data
     } catch (error) {
       console.error('Error marking payout as paid:', error);

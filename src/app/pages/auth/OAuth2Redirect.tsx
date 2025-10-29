@@ -71,8 +71,8 @@ export default function OAuth2Redirect() {
           roles: userRoles
         };
         
-        // Store authentication data using utility function
-        setAuthData(token, userData, userRoles);
+        // Store authentication data using utility function (remember by default for OAuth2)
+        setAuthData(token, userData, userRoles, true);
 
         // Debug: Log final localStorage state
         console.log('Final localStorage state after OAuth2:', {
@@ -89,7 +89,13 @@ export default function OAuth2Redirect() {
           : userRoles.includes('ROLE_SELLER')
             ? 'Seller'
             : 'User';
-        toast.success('Welcome', `${userData.username} (${roleLabel})`);
+        const title: string = `Welcome back, ${userData.username}!`;
+        const message: string = userRoles.includes('ROLE_ADMIN')
+          ? 'You are signed in as Admin. Use the Admin menu to manage the platform.'
+          : userRoles.includes('ROLE_SELLER')
+            ? 'You are signed in as Seller. Visit your Profile to manage your store.'
+            : 'You are signed in. Explore top templates or continue where you left off.';
+        toast.success(title, `${message} (${roleLabel})`, 7000);
         
         // Clear URL parameters to prevent loop
         window.history.replaceState({}, document.title, window.location.pathname);

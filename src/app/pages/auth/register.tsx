@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from './services/authAPI';
+import { validatePasswordStrength } from '../../utils/authUtils';
 import { useToast } from '../../contexts/ToastContext';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
@@ -18,25 +19,36 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    if (e.target.name === 'password') {
+      const check = validatePasswordStrength(e.target.value);
+      setPasswordError(check.valid ? '' : (check.error ?? 'Password does not meet requirements'));
+      if (formData.confirmPassword) {
+        setConfirmPasswordError(e.target.value === formData.confirmPassword ? '' : 'Passwords do not match');
+      }
+    }
+    if (e.target.name === 'confirmPassword') {
+      setConfirmPasswordError(e.target.value === formData.password ? '' : 'Passwords do not match');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Password Mismatch', 'Passwords do not match!');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('Weak Password', 'Password must be at least 6 characters long');
+    const pwdCheck = validatePasswordStrength(formData.password);
+    setPasswordError(pwdCheck.valid ? '' : (pwdCheck.error ?? 'Password does not meet requirements'));
+    setConfirmPasswordError(formData.password === formData.confirmPassword ? '' : 'Passwords do not match');
+    if (!pwdCheck.valid || formData.password !== formData.confirmPassword) {
+      toast.error('Invalid password', passwordError || confirmPasswordError || pwdCheck.error || 'Please fix the password errors');
       return;
     }
 
@@ -116,6 +128,9 @@ export default function Register() {
                   placeholder="Choose a username"
                 />
               </div>
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
+              )}
             </div>
 
             {/* Email Field */}
@@ -140,6 +155,9 @@ export default function Register() {
                   placeholder="Enter your email"
                 />
               </div>
+              {confirmPasswordError && (
+                <p className="mt-2 text-sm text-red-600">{confirmPasswordError}</p>
+              )}
             </div>
 
             {/* Password Field */}

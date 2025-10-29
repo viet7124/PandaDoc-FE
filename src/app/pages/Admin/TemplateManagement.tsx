@@ -15,6 +15,7 @@ import { validatePreviewImages } from '../../utils/fileValidation';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 import { createTemplatePayout } from './services/payoutAPI';
+import { trySendNotification } from '../Notification/services/notificationAPI';
 import type { CreatePayoutRequest } from './services/payoutAPI';
 
 interface Category {
@@ -299,6 +300,17 @@ export default function TemplateManagement() {
       
       toast.success('Template Approved & Payout Created', 
         `Template approved and payout of ${payoutForm.agreedPrice.toLocaleString()} VND has been created for the seller.`);
+
+      // Best-effort notification to seller
+      if (selectedTemplateForPayout) {
+        trySendNotification({
+          username: (selectedTemplateForPayout as any).sellerUsername, // may or may not be present depending on API
+          title: 'Template Approved',
+          message: `Your template "${selectedTemplateForPayout.title}" has been approved. Payout ${payoutForm.agreedPrice.toLocaleString()} VND created.`,
+          type: 'SUCCESS',
+          link: '/seller-profile?tab=earnings'
+        });
+      }
     } catch (error) {
       console.error('Error creating payout:', error);
       toast.error('Payout Creation Failed', 'An error occurred while creating the payout. Please try again.');

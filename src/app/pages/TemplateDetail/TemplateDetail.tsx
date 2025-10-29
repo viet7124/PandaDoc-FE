@@ -695,8 +695,9 @@ export default function TemplateDetail() {
                     })}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {template.rating ? `${Number(template.rating).toFixed(1)}/5` : '0.0/5'} 
-                    ({template.reviewCount || 0} review{(template.reviewCount || 0) !== 1 ? 's' : ''})
+                    {template.reviewCount && template.reviewCount > 0
+                      ? `${Number(template.rating || 0).toFixed(1)}/5 (${template.reviewCount} review${template.reviewCount !== 1 ? 's' : ''})`
+                      : 'No reviews yet'}
                   </span>
                 </div>
                 

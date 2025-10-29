@@ -16,6 +16,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -49,7 +50,7 @@ export default function Login() {
       const roles = res.roles || [];
 
       console.log('🔐 Storing auth data...');
-      setAuthData(token, userData, roles);
+      setAuthData(token, userData, roles, rememberMe);
       
       // Verify storage
       console.log('🔐 Verification - localStorage after setAuthData:');
@@ -64,7 +65,13 @@ export default function Login() {
         : roles.includes('ROLE_SELLER')
           ? 'Seller'
           : 'User';
-      toast.success('Welcome', `${userData.username} (${roleLabel})`);
+      const title: string = `Welcome back, ${userData.username}!`;
+      const message: string = roles.includes('ROLE_ADMIN')
+        ? 'You are signed in as Admin. Use the Admin menu to manage the platform.'
+        : roles.includes('ROLE_SELLER')
+          ? 'You are signed in as Seller. Visit your Profile to manage your store.'
+          : 'You are signed in. Explore top templates or continue where you left off.';
+      toast.success(title, `${message} (${roleLabel})`, 7000);
 
       if (roles.includes('ROLE_ADMIN')) navigate('/admin');
       else if (roles.includes('ROLE_SELLER')) navigate('/home');
@@ -191,6 +198,8 @@ export default function Login() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

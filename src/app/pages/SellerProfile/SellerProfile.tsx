@@ -81,6 +81,27 @@ export default function SellerProfile() {
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
+  // Common Vietnamese banks for selection
+  const BANK_OPTIONS: string[] = [
+    'Vietcombank',
+    'Techcombank',
+    'BIDV',
+    'VietinBank',
+    'Agribank',
+    'MB Bank',
+    'ACB',
+    'TPBank',
+    'Sacombank',
+    'VPBank',
+    'HDBank',
+    'VIB',
+    'OCB',
+    'SHB',
+    'SeaBank',
+    'DongA Bank',
+    'Eximbank'
+  ];
+
   // Check if user has ROLE_SELLER and fetch dashboard data
   useEffect(() => {
     const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
@@ -734,10 +755,6 @@ export default function SellerProfile() {
                     </div>
 
                     <div className="flex gap-2">
-                      <button className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors inline-flex items-center justify-center gap-2">
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
                       <button 
                         onClick={() => handleDeleteTemplate(template.id)}
                         disabled={deletingId === template.id}
@@ -1344,22 +1361,32 @@ export default function SellerProfile() {
                 <p className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <strong>Note:</strong> Leave fields empty to keep existing values. Complete bank information is required to upload templates and receive payouts.
                 </p>
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <strong>Quan trọng:</strong> Vui lòng nhập chính xác thông tin tài khoản ngân hàng. Nếu sai, bạn có thể không nhận được tiền thanh toán.
+                </p>
                 
                 <div>
                   <label htmlFor="profile-bankName" className="block text-sm font-medium text-gray-700 mb-2">
                     Bank Name
                   </label>
-                  <input
+                  <select
                     id="profile-bankName"
-                    type="text"
                     value={profileForm.bankName || ''}
                     onChange={(e) => handleProfileFormChange('bankName', e.target.value)}
                     disabled={isUpdatingProfile}
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:opacity-50 disabled:cursor-not-allowed ${
                       profileErrors.bankName ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    placeholder={sellerProfile?.bankName ? `Current: ${sellerProfile.bankName}` : "e.g., Vietcombank, Techcombank, BIDV"}
-                  />
+                  >
+                    <option value="">Select your bank</option>
+                    {BANK_OPTIONS.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    {/* Allow custom bank name fallback */}
+                    {profileForm.bankName && !BANK_OPTIONS.includes(profileForm.bankName) && (
+                      <option value={profileForm.bankName}>{profileForm.bankName}</option>
+                    )}
+                  </select>
                   {profileErrors.bankName && (
                     <p className="mt-1 text-sm text-red-600">{profileErrors.bankName}</p>
                   )}

@@ -3,11 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { User, LogOut } from "lucide-react";
 import avatarImage from "../../assets/avatar.png";
 import { addRoleChangeListener } from "../../utils/roleEvents";
+import { getCurrentUser, getAvatarUrl } from "../../pages/Profile/services/authAPI";
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSeller, setIsSeller] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [language, setLanguage] = useState<string>(localStorage.getItem('lang') || 'en');
   const navigate = useNavigate();
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -27,6 +30,26 @@ export default function Header() {
       removeListener();
     };
   }, []);
+
+  // Load avatar when header mounts and when token changes
+  useEffect(() => {
+    const loadAvatar = async () => {
+      try {
+        const data = await getCurrentUser();
+        const url = getAvatarUrl(data.avatar);
+        setAvatarUrl(url);
+      } catch (e) {
+        // ignore, will fallback to icon
+      }
+    };
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (token) loadAvatar();
+  }, []);
+
+  // Apply selected language to <html lang>
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -78,6 +101,12 @@ export default function Header() {
               className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
             >
               Templates
+            </Link>
+            <Link 
+              to="/profile?tab=purchased" 
+              className="px-4 py-2 font-krub text-base lg:text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+            >
+              My Library
             </Link>
             {isSeller ? (
               <Link 
@@ -154,9 +183,13 @@ export default function Header() {
             <div ref={profileMenuRef} className="hidden sm:block relative">
               <button 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="p-2 rounded-full border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+                className="p-0.5 rounded-full border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
               >
-                <User className="w-6 h-6 text-gray-700" />
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" className="w-8 h-8 rounded-full object-cover" onError={() => setAvatarUrl(undefined)} />
+                ) : (
+                  <User className="w-6 h-6 text-gray-700 m-1" />
+                )}
               </button>
               
               {/* Dropdown Menu */}
@@ -179,6 +212,22 @@ export default function Header() {
                   </button>
                 </div>
               )}
+            </div>
+            {/* Language Selector */}
+            <div className="hidden md:block">
+              <select
+                aria-label="Language selector"
+                value={language}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setLanguage(val);
+                  localStorage.setItem('lang', val);
+                }}
+                className="px-2 py-2 text-sm border-2 border-gray-200 rounded-lg bg-white hover:border-green-500 transition-colors"
+              >
+                <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
+              </select>
             </div>
             {/* Mobile menu button */}
             <button 
@@ -235,6 +284,13 @@ export default function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Templates
+            </Link>
+            <Link 
+              to="/profile?tab=purchased" 
+              className="block px-4 py-3 font-krub text-lg font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              My Library
             </Link>
             {isSeller ? (
               <Link 

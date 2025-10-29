@@ -18,9 +18,10 @@ export interface AuthState {
  * Get current authentication state from localStorage
  */
 export const getAuthState = (): AuthState => {
-  const token = localStorage.getItem('token');
-  const userString = localStorage.getItem('user');
-  const rolesString = localStorage.getItem('userRoles');
+  // Prefer sessionStorage (non-remembered logins) first, then fallback to localStorage
+  const token = sessionStorage.getItem('token') ?? localStorage.getItem('token');
+  const userString = sessionStorage.getItem('user') ?? localStorage.getItem('user');
+  const rolesString = sessionStorage.getItem('userRoles') ?? localStorage.getItem('userRoles');
   
   let user: UserData | null = null;
   let roles: string[] = [];
@@ -43,12 +44,23 @@ export const getAuthState = (): AuthState => {
 /**
  * Set authentication data in localStorage
  */
-export const setAuthData = (token: string, user: UserData, roles: string[]): void => {
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
-  localStorage.setItem('userRoles', JSON.stringify(roles));
-  localStorage.setItem('username', user.username);
-  localStorage.setItem('email', user.email);
+export const setAuthData = (token: string, user: UserData, roles: string[], remember: boolean = true): void => {
+  // Choose storage based on remember flag
+  const storage = remember ? localStorage : sessionStorage;
+  const otherStorage = remember ? sessionStorage : localStorage;
+
+  // Clear previous data from the other storage to avoid ambiguity
+  otherStorage.removeItem('token');
+  otherStorage.removeItem('user');
+  otherStorage.removeItem('userRoles');
+  otherStorage.removeItem('username');
+  otherStorage.removeItem('email');
+
+  storage.setItem('token', token);
+  storage.setItem('user', JSON.stringify(user));
+  storage.setItem('userRoles', JSON.stringify(roles));
+  storage.setItem('username', user.username);
+  storage.setItem('email', user.email);
   
   console.log('✅ Auth data stored:', { 
     token: token.substring(0, 20) + '...', 
@@ -66,6 +78,11 @@ export const clearAuthData = (): void => {
   localStorage.removeItem('userRoles');
   localStorage.removeItem('username');
   localStorage.removeItem('email');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('userRoles');
+  sessionStorage.removeItem('username');
+  sessionStorage.removeItem('email');
   
   console.log('✅ Auth data cleared');
 };
@@ -84,6 +101,36 @@ export const hasRole = (role: string): boolean => {
 export const hasAnyRole = (allowedRoles: string[]): boolean => {
   const { roles } = getAuthState();
   return allowedRoles.some(role => roles.includes(role));
+};
+
+// Password policy validation
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ !"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).{8,}$/;
+
+export interface PasswordValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export const validatePasswordStrength = (password: string): PasswordValidationResult => {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return { valid: false, error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters long` };
+  }
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial = /[ !"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(password);
+
+  if (!hasLowercase || !hasUppercase || !hasDigit || !hasSpecial) {
+    const missing: string[] = [];
+    if (!hasUppercase) missing.push('an uppercase letter');
+    if (!hasLowercase) missing.push('a lowercase letter');
+    if (!hasDigit) missing.push('a number');
+    if (!hasSpecial) missing.push('a special character');
+    return { valid: false, error: `Password must include ${missing.join(', ')}` };
+  }
+
+  return { valid: true };
 };
 
 /**

@@ -26,6 +26,8 @@ export default function Profile() {
   const toast = useToast();
   const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>('account');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   // User profile state
@@ -488,7 +490,7 @@ export default function Profile() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-xl transition-shadow shadow-md">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -517,19 +519,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-xl transition-shadow shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-              <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900">47</h3>
-              <p className="text-gray-700 font-medium">Total Downloads</p>
-            </div>
-          </div>
-        </div>
+        {/* Total Downloads card removed as requested */}
       </div>
 
       {/* Personal Information */}
@@ -744,9 +734,12 @@ export default function Profile() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600 font-medium bg-gray-100 px-3 py-1 rounded-full">
-                    {purchasedTemplates.filter(p => 
-                      selectedCategory === null || p.template.category?.id === selectedCategory
-                    ).length} templates
+                    {purchasedTemplates.filter(p => {
+                      if (selectedCategory === null) return true;
+                      if (selectedCategory === 'REPORT') return p.template.category?.name?.toLowerCase() === 'report';
+                      if (selectedCategory === 'OTHER') return p.template.category?.name?.toLowerCase() === 'other';
+                      return p.template.category?.id === selectedCategory;
+                    }).length} templates
                   </span>
                 </div>
               </div>
@@ -763,6 +756,26 @@ export default function Profile() {
                     }`}
                   >
                     All Categories
+                  </button>
+                  <button
+                    onClick={() => setSelectedCategory('REPORT')}
+                    className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+                      selectedCategory === 'REPORT'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Report
+                  </button>
+                  <button
+                    onClick={() => setSelectedCategory('OTHER')}
+                    className={`px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+                      selectedCategory === 'OTHER'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Other
                   </button>
                   {Array.from(new Set(purchasedTemplates.filter(p => p.template.category).map(p => p.template.category.id)))
                     .map(categoryId => {
@@ -813,9 +826,12 @@ export default function Profile() {
             {!loadingPurchases && purchasedTemplates.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {purchasedTemplates
-                  .filter(purchase => 
-                    selectedCategory === null || purchase.template.category?.id === selectedCategory
-                  )
+                  .filter(purchase => {
+                    if (selectedCategory === null) return true;
+                    if (selectedCategory === 'REPORT') return purchase.template.category?.name?.toLowerCase() === 'report';
+                    if (selectedCategory === 'OTHER') return purchase.template.category?.name?.toLowerCase() === 'other';
+                    return purchase.template.category?.id === selectedCategory;
+                  })
                   .map((purchase) => (
                     <div key={purchase.libraryId} className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-200 group">
                       <div className="relative">
