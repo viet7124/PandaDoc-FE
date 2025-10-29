@@ -5,6 +5,8 @@ import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 import { setAuthData, type UserData } from '../../utils/authUtils';
+import LegalDocumentModal from '../../components/LegalDocumentModal';
+import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../../constants/legalDocuments';
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -254,13 +256,17 @@ export default function Login() {
         {/* Footer Links */}
         <p className="mt-8 text-center text-sm text-white drop-shadow-md">
           By signing in, you agree to our{' '}
-          <Link to="/terms-of-service" className="font-medium text-green-300 hover:text-green-200 underline">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link to="/privacy-policy" className="font-medium text-green-300 hover:text-green-200 underline">
-            Privacy Policy
-          </Link>
+          <LegalDocumentModal 
+            title="Terms of Service" 
+            content={TERMS_OF_SERVICE_CONTENT}
+            trigger="Terms of Service"
+          />
+          {' '}and{' '}
+          <LegalDocumentModal 
+            title="Privacy Policy" 
+            content={PRIVACY_POLICY_CONTENT}
+            trigger="Privacy Policy"
+          />
         </p>
       </div>
       

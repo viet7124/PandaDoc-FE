@@ -4,6 +4,8 @@ import { register } from './services/authAPI';
 import { useToast } from '../../contexts/ToastContext';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
+import LegalDocumentModal from '../../components/LegalDocumentModal';
+import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../../constants/legalDocuments';
 export default function Register() {
   const toast = useToast();
   const navigate = useNavigate();
@@ -229,13 +231,17 @@ export default function Register() {
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
                 I agree to the{' '}
-                <Link to="/terms-of-service" className="font-medium text-green-600 hover:text-green-700">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy-policy" className="font-medium text-green-600 hover:text-green-700">
-                  Privacy Policy
-                </Link>
+                <LegalDocumentModal 
+                  title="Terms of Service" 
+                  content={TERMS_OF_SERVICE_CONTENT}
+                  trigger="Terms of Service"
+                />
+                {' '}and{' '}
+                <LegalDocumentModal 
+                  title="Privacy Policy" 
+                  content={PRIVACY_POLICY_CONTENT}
+                  trigger="Privacy Policy"
+                />
               </label>
             </div>
 
