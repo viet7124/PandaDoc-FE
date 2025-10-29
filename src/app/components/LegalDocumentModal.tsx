@@ -53,10 +53,10 @@ export default function LegalDocumentModal({ title, content, trigger, position =
           
           {/* Modal positioned to side */}
           <div 
-            className={`fixed top-1/2 transform -translate-y-1/2 z-50 ${
+            className={` transform -translate-y-1/2 z-50 absolute bottom-[-1100%]  ${
               position === 'right' 
-                ? 'right-[25%]' 
-                : 'left-[25%]'
+                ? 'right-[120%]' 
+                : 'left-[120%]'
             }`}
           >
             <div 
