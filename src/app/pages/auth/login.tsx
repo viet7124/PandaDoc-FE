@@ -6,6 +6,7 @@ import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallp
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 import { setAuthData, type UserData } from '../../utils/authUtils';
 import { AuthDebugger } from '../../components/AuthDebugger';
+import { LoginTester } from '../../components/LoginTester';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -32,7 +33,9 @@ export default function Login() {
 
     try {
       const response = await login(formData.username, formData.password);
-      console.log('Login response:', response);
+      console.log('🔐 Full login response:', response);
+      console.log('🔐 Response type:', typeof response);
+      console.log('🔐 Response keys:', Object.keys(response));
 
       // Handle different response formats from backend
       let token, userData: UserData, roles;
@@ -73,6 +76,12 @@ export default function Login() {
 
       // Store authentication data using utility function
       setAuthData(token, userData, roles);
+      
+      // Debug: Verify token was stored
+      console.log('🔐 Token stored, verifying...');
+      console.log('🔐 Stored token:', localStorage.getItem('token'));
+      console.log('🔐 Stored user:', localStorage.getItem('user'));
+      console.log('🔐 Stored roles:', localStorage.getItem('userRoles'));
 
       // Notify components about role change
       dispatchRoleChangeEvent();
@@ -294,8 +303,9 @@ export default function Login() {
         </p>
       </div>
       
-      {/* Debug component - remove in production */}
+      {/* Debug components - remove in production */}
       <AuthDebugger />
+      <LoginTester />
     </div>
   );
 }
