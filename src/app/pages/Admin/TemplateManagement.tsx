@@ -771,18 +771,24 @@ export default function TemplateManagement() {
                   <div key={template.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white">
                     {/* Template Preview Image */}
                     <div className="relative h-32 mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
-                      {template.images && template.images.length > 0 ? (
-                        <img
-                          src={template.images[0]}
-                          alt={`${template.title} preview`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback to default image if preview fails to load
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
+                      {(() => {
+                        const apiBase = import.meta.env.VITE_BASE_URL + 'api';
+                        const previewSrc = (template.images && template.images.length > 0)
+                          ? template.images[0]
+                          : `${apiBase}/templates/${template.id}/preview`;
+                        return (
+                          <img
+                            src={previewSrc}
+                            alt={`${template.title} preview`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to default image if preview fails to load
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        );
+                      })()}
                       {/* Default fallback image */}
                       <div className={`absolute inset-0 flex items-center justify-center ${template.images && template.images.length > 0 ? 'hidden' : ''}`}>
                         <div className="text-center">
