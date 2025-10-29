@@ -14,29 +14,19 @@ import {
   getPurchasedTemplates, 
   type PurchasedTemplate 
 } from './services/purchasesAPI';
-import { 
-  getCurrentUser, 
-  updateProfile,
-  getAvatarUrl,
-  type UserProfile as UserProfileType
-} from './services/authAPI';
+// Profile auth APIs are not needed in library-only view
+// import from './services/authAPI'
 import { downloadTemplate } from '../TemplatePage/services/templateAPI';
 
 export default function Profile() {
   const toast = useToast();
   const { confirm } = useConfirm();
-  const initialView = 'purchased';
-  const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>(initialView as any);
+  const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>('purchased');
   const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  
 
   // User profile state
-  const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(false);
-  const [editedName, setEditedName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  
   
   // Collections state
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -55,10 +45,7 @@ export default function Profile() {
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [downloadingTemplateId, setDownloadingTemplateId] = useState<number | null>(null);
 
-  // Fetch user profile on mount
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
+  
 
   // Fetch data when tab changes
   useEffect(() => {
@@ -92,18 +79,7 @@ export default function Profile() {
     };
   }, [activeTab]);
 
-  const fetchUserProfile = async () => {
-    try {
-      setLoadingProfile(true);
-      const data = await getCurrentUser();
-      setUserProfile(data);
-      setEditedName(data.name || data.username);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
+  
 
   const fetchCollections = async () => {
     try {
@@ -273,75 +249,11 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type - Only .jpg and .png allowed for avatars
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(file.type)) {
-        toast.error('Invalid File Type', 'Please upload a valid image file (.jpg or .png only)');
-        e.target.value = ''; // Reset input
-        return;
-      }
-      
-      // Validate file size (max 2MB for avatars)
-      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
-      if (file.size > maxSize) {
-        toast.error('File Too Large', `Avatar image must be less than 2MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
-        e.target.value = ''; // Reset input
-        return;
-      }
-      
-      setSelectedAvatar(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  
 
-  const handleSaveProfile = async () => {
-    if (!editedName.trim()) {
-      toast.warning('Name Required', 'Please enter a name');
-      return;
-    }
+  
 
-    try {
-      setIsUpdatingProfile(true);
-      await updateProfile(editedName, selectedAvatar || undefined);
-      
-      // Refetch the complete user profile to ensure all fields are present
-      await fetchUserProfile();
-      
-      // Update localStorage user data
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        userData.name = editedName;
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-      
-      // Reset edit mode
-      setIsEditing(false);
-      setSelectedAvatar(null);
-      setAvatarPreview(null);
-      
-      toast.success('Profile Updated', 'Profile updated successfully!');
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      toast.error('Update Failed', 'Failed to update profile');
-    } finally {
-      setIsUpdatingProfile(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditedName(userProfile?.name || userProfile?.username || '');
-    setSelectedAvatar(null);
-    setAvatarPreview(null);
-  };
+  
 
   const handleDownloadTemplate = async (templateId: number, templateTitle: string, documentType?: string) => {
     try {
