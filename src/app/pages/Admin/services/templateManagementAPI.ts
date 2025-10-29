@@ -104,28 +104,35 @@ const getAuthHeadersLocal = () => {
     const currentTime = Date.now() / 1000;
     
     console.log('🔐 Token payload:', tokenData);
-    console.log('🔐 Token roles/authorities:', tokenData.authorities || tokenData.roles || 'No roles found');
-    
-    // Check if user has admin role in token
-    const tokenRoles = tokenData.authorities || tokenData.roles || [];
-    const hasAdminRole = Array.isArray(tokenRoles) && tokenRoles.some((role: string | { authority: string }) => 
-      role === 'ROLE_ADMIN' || (typeof role === 'object' && role.authority === 'ROLE_ADMIN') || role === 'ADMIN'
-    );
-    
-    if (!hasAdminRole) {
-      console.error('❌ Access denied - ROLE_ADMIN required but not found');
-      console.error('❌ Available roles:', tokenRoles);
-      console.error('❌ User subject:', tokenData.sub);
-      throw new Error('Access denied. ROLE_ADMIN required.');
-    }
     
     if (tokenData.exp && tokenData.exp < currentTime) {
       console.error('Token has expired');
       localStorage.removeItem('token');
       throw new Error('Session expired. Please login again.');
     }
-  } catch {
-    console.error('Invalid token format');
+    
+    // Check admin role from localStorage (not from token)
+    const userRolesString = localStorage.getItem('userRoles');
+    let userRoles: string[] = [];
+    try {
+      userRoles = userRolesString ? JSON.parse(userRolesString) : [];
+    } catch (error) {
+      console.error('Error parsing user roles from localStorage:', error);
+    }
+    
+    console.log('🔐 User roles from localStorage:', userRoles);
+    
+    const hasAdminRole = userRoles.includes('ROLE_ADMIN');
+    
+    if (!hasAdminRole) {
+      console.error('❌ Access denied - ROLE_ADMIN required but not found');
+      console.error('❌ Available roles:', userRoles);
+      console.error('❌ User subject:', tokenData.sub);
+      throw new Error('Access denied. ROLE_ADMIN required.');
+    }
+    
+  } catch (error) {
+    console.error('Invalid token format or role check failed:', error);
     localStorage.removeItem('token');
     throw new Error('Invalid session. Please login again.');
   }
