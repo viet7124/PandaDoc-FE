@@ -31,13 +31,24 @@ export default function Header() {
     };
   }, []);
 
-  // Load avatar when header mounts and when token changes
+  // Load avatar when header mounts
   useEffect(() => {
     const loadAvatar = async () => {
       try {
+        // Optimistic load from cached localStorage user first
+        try {
+          const cached = localStorage.getItem('user');
+          if (cached) {
+            const u = JSON.parse(cached);
+            const cachedUrl = getAvatarUrl(u.avatar);
+            if (cachedUrl) setAvatarUrl(cachedUrl);
+          }
+        } catch {}
+
+        // Then fetch fresh profile to ensure latest avatar
         const data = await getCurrentUser();
-        const url = getAvatarUrl(data.avatar);
-        setAvatarUrl(url);
+        const freshUrl = getAvatarUrl(data.avatar);
+        if (freshUrl) setAvatarUrl(freshUrl);
       } catch (e) {
         // ignore, will fallback to icon
       }
