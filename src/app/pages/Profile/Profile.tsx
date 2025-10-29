@@ -27,7 +27,6 @@ export default function Profile() {
   const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>('account');
   const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   // User profile state
@@ -53,7 +52,6 @@ export default function Profile() {
   // Purchased templates state
   const [purchasedTemplates, setPurchasedTemplates] = useState<PurchasedTemplate[]>([]);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [downloadingTemplateId, setDownloadingTemplateId] = useState<number | null>(null);
 
   // Fetch user profile on mount
