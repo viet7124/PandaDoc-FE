@@ -1,29 +1,21 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from './services/authAPI';
+import { login, type LoginResponse } from './services/authAPI';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 import { setAuthData, type UserData } from '../../utils/authUtils';
-import { AuthDebugger } from '../../components/AuthDebugger';
-import { LoginTester } from '../../components/LoginTester';
 
 export default function Login() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setError(''); // Clear error on input change
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,82 +24,37 @@ export default function Login() {
     setError('');
 
     try {
-      const response = await login(formData.username, formData.password);
-      console.log('🔐 Full login response:', response);
-      console.log('🔐 Response type:', typeof response);
-      console.log('🔐 Response keys:', Object.keys(response));
+      const res: LoginResponse = await login(formData.username, formData.password);
 
-      // Handle different response formats from backend
-      let token, userData: UserData, roles;
-      
-      if (response.token) {
-        // Direct token in response
-        token = response.token;
-        userData = {
-          id: response.id,
-          username: response.username,
-          email: response.email,
-          roles: response.roles || []
-        };
-        roles = response.roles || [];
-      } else if (response.data && response.data.token) {
-        // Token nested in data object
-        token = response.data.token;
-        userData = {
-          id: response.data.id,
-          username: response.data.username,
-          email: response.data.email,
-          roles: response.data.roles || []
-        };
-        roles = response.data.roles || [];
-      } else if (response.accessToken) {
-        // Alternative token field name
-        token = response.accessToken;
-        userData = {
-          id: response.id,
-          username: response.username,
-          email: response.email,
-          roles: response.roles || []
-        };
-        roles = response.roles || [];
-      } else {
-        throw new Error('No token found in response');
-      }
+      // Expect backend shape per swagger: { id, username, email, roles[], token, type }
+      const token: string = res.token;
+      if (!token) throw new Error('No token returned by server');
 
-      // Store authentication data using utility function
+      const userData: UserData = {
+        id: res.id,
+        username: res.username,
+        email: res.email,
+        roles: res.roles || []
+      };
+      const roles = res.roles || [];
+
       setAuthData(token, userData, roles);
-      
-      // Debug: Verify token was stored
-      console.log('🔐 Token stored, verifying...');
-      console.log('🔐 Stored token:', localStorage.getItem('token'));
-      console.log('🔐 Stored user:', localStorage.getItem('user'));
-      console.log('🔐 Stored roles:', localStorage.getItem('userRoles'));
-
-      // Notify components about role change
       dispatchRoleChangeEvent();
 
-      // Redirect based on role
-      if (roles.includes('ROLE_ADMIN')) {
-        navigate('/admin');
-      } else {
-        navigate('/home');
-      }
-    } catch (error: unknown) {
-      console.error('Login error:', error);
-      const errorMessage = (error as any)?.response?.data?.message || (error as any)?.message || 'Invalid username or password';
-      setError(errorMessage);
+      if (roles.includes('ROLE_ADMIN')) navigate('/admin');
+      else if (roles.includes('ROLE_SELLER')) navigate('/seller-profile');
+      else navigate('/home');
+    } catch {
+      setError('Invalid username or password');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to backend OAuth2 endpoint - force HTTPS
     const backendUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8081';
-    // Ensure HTTPS for OAuth2 endpoint
     const httpsBackendUrl = backendUrl.replace('http://', 'https://');
     const oauth2Url = `${httpsBackendUrl}/oauth2/authorization/google`;
-    console.log('Redirecting to OAuth2 URL:', oauth2Url);
     window.location.href = oauth2Url;
   };
 
@@ -303,9 +250,7 @@ export default function Login() {
         </p>
       </div>
       
-      {/* Debug components - remove in production */}
-      <AuthDebugger />
-      <LoginTester />
+      {/* Debug components removed for clean login */}
     </div>
   );
 }

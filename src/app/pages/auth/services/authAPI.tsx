@@ -13,6 +13,15 @@ if (!normalizedBase) {
 
 const url = `${normalizedBase}api`;
 
+export interface LoginResponse {
+    id: number;
+    username: string;
+    email: string;
+    roles: string[];
+    token: string; // JWT from backend
+    type?: string; // e.g., "Bearer"
+}
+
 export interface ForgotPasswordRequest {
     email: string;
 }
@@ -37,27 +46,14 @@ export const register = async (username: string, email: string, password: string
     }
 };
 
-export const login = async (username: string, password: string) => {
-    try {
-        console.log('🔐 Attempting login for user:', username);
-        console.log('🔐 Backend URL:', `${url}/auth/signin`);
-        
-        const response = await axios.post(`${url}/auth/signin`, { username, password }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            }
-        });
-        
-        console.log('🔐 Login response status:', response.status);
-        console.log('🔐 Login response data:', response.data);
-        
-        return response.data;
-    } catch (error: unknown) {
-        console.error('Error logging in user:', error);
-        console.error('Error response:', (error as { response?: { data?: unknown } })?.response?.data);
-        throw error;
-    }
+export const login = async (username: string, password: string): Promise<LoginResponse> => {
+    const response = await axios.post<LoginResponse>(`${url}/auth/signin`, { username, password }, {
+        headers: {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+        }
+    });
+    return response.data;
 };
 
 export const logout = async () => {
