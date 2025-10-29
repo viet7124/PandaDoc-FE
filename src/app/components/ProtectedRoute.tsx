@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router-dom';
+import { getAuthState } from '../utils/authUtils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -6,17 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const token = localStorage.getItem('token');
-  const userRolesString = localStorage.getItem('userRoles');
-  
-  // Parse user roles from localStorage
-  let userRoles: string[] = [];
-  try {
-    userRoles = userRolesString ? JSON.parse(userRolesString) : [];
-  } catch (error) {
-    console.error('Error parsing user roles:', error);
-    userRoles = [];
-  }
+  const { token, roles: userRoles } = getAuthState();
 
   // Not authenticated
   if (!token) {
