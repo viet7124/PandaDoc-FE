@@ -174,20 +174,40 @@ export const updateTemplate = async (id: number, data: UpdateTemplateRequest): P
     console.log('Template updated:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error updating template:', error);
+    console.warn('Primary update endpoint returned error, attempting admin fallback if 401/403:', error);
+    if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+      // Fallback: some deployments restrict updates to admin path
+      try {
+        const response = await axios.put<Template>(`${url}/admin/templates/${id}`, data, {
+          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          timeout: 10000
+        });
+        console.log('Template updated via admin endpoint:', response.data);
+        return response.data;
+      } catch (e) {
+        console.error('Admin fallback update failed:', e);
+        if (axios.isAxiosError(e)) {
+          if (e.response?.status === 401) {
+            throw new Error('Authentication failed. Please login again.');
+          } else if (e.response?.status === 403) {
+            throw new Error('Access denied. Admin privileges required.');
+          }
+        }
+        throw e;
+      }
+    }
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Access denied. Admin privileges required.');
-      } else if (error.response?.status === 404) {
+      if (error.response?.status === 404) {
         throw new Error('Template not found.');
       } else if (error.response?.status === 400) {
-        const errorMessage = error.response?.data?.message || 'Invalid template data';
+        const errorData: unknown = error.response?.data;
+        const errorMessage = typeof errorData === 'object' && errorData !== null && 'message' in (errorData as Record<string, unknown>)
+          ? String((errorData as Record<string, unknown>).message)
+          : 'Invalid template data';
         throw new Error(`Bad Request: ${errorMessage}`);
       }
     }
-    throw error;
+    throw error as Error;
   }
 };
 
