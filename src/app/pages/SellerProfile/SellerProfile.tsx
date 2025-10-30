@@ -4,7 +4,6 @@ import {
   DollarSign, 
   Upload, 
   Edit, 
-  Trash2, 
   Star,
   AlertCircle,
   Plus,
@@ -15,7 +14,6 @@ import {
   uploadTemplate, 
   getCategories,
   getSellerTemplates,
-  deleteTemplate,
   getSellerPayouts,
   getEarningsSummary,
   getSellerProfile,
@@ -47,7 +45,7 @@ export default function SellerProfile() {
   // Templates state
   const [templates, setTemplates] = useState<SellerTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  // delete functionality removed
 
   // Upload template state
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -256,40 +254,7 @@ export default function SellerProfile() {
   };
 
 
-  // Delete handler
-  const handleDeleteTemplate = async (templateId: number) => {
-    const result = await confirm({
-      title: 'Delete Template',
-      message: 'Are you sure you want to delete this template? This action cannot be undone.',
-      type: 'danger',
-      confirmText: 'Delete',
-      cancelText: 'Cancel'
-    });
-
-    if (!result) return;
-
-    try {
-      setDeletingId(templateId);
-      await deleteTemplate(templateId);
-      toast.success('Template Deleted', 'Template has been deleted successfully');
-      
-      // Refresh templates and dashboard data
-      await fetchTemplates();
-      const data = await getSellerDashboard();
-      setDashboardData(data);
-    } catch (error) {
-      console.error('Error deleting template:', error);
-      
-      // Extract error message
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Failed to delete template. Please try again.';
-      
-      toast.error('Delete Failed', errorMessage);
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  // Delete handler removed
 
   // Profile management functions
   const fetchSellerProfile = async () => {
