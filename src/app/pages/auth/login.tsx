@@ -16,7 +16,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
-  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  // removed rememberMe state
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -50,7 +50,7 @@ export default function Login() {
       const roles = res.roles || [];
 
       console.log('🔐 Storing auth data...');
-      setAuthData(token, userData, roles, rememberMe);
+      setAuthData(token, userData, roles, false); // always session-based
       
       // Verify storage
       console.log('🔐 Verification - localStorage after setAuthData:');
@@ -193,20 +193,7 @@ export default function Login() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-green-600 border-2 border-gray-300 rounded focus:ring-green-500/25 focus:ring-2 transition-colors"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-
+              <div />
               <div className="text-sm">
                 <Link to="/forgot-password" className="font-medium text-green-600 hover:text-green-700 transition-colors">
                   Forgot password?

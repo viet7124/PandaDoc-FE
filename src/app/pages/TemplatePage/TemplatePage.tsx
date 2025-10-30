@@ -284,35 +284,37 @@ export default function TemplatePage() {
                     {/* Template Preview */}
                     <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                       {(() => {
-                        const apiBase = import.meta.env.VITE_BASE_URL + 'api';
-                        const previewSrc =
-                          (template.images && template.images.length > 0)
+                        const previewSrc = (template.previewImages && template.previewImages.length > 0)
+                          ? template.previewImages[0]
+                          : (template.images && template.images.length > 0)
                             ? template.images[0]
-                            : (template['previewImages'] && template['previewImages'].length > 0)
-                              ? template['previewImages'][0]
-                              : `${apiBase}/templates/${template.id}/preview`;
-                        return (
+                            : undefined;
+                        return previewSrc ? (
                           <img
                             src={previewSrc}
                             alt={`${template.title} preview`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              // Fallback to default image if preview fails to load
                               e.currentTarget.style.display = 'none';
                               e.currentTarget.nextElementSibling?.classList.remove('hidden');
                             }}
                           />
-                        );
+                        ) : null;
                       })()}
                       {/* Default fallback image */}
-                      <div className={`absolute inset-0 flex items-center justify-center ${template.images && template.images.length > 0 ? 'hidden' : ''}`}>
-                        <div className="text-center">
-                          <svg className="w-16 h-16 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
-                          <div className="text-lg font-medium text-gray-500">No Preview</div>
-                        </div>
-                      </div>
+                      {(() => {
+                        const hasPreview = (template.previewImages && template.previewImages.length > 0) || (template.images && template.images.length > 0);
+                        return (
+                          <div className={`absolute inset-0 flex items-center justify-center ${hasPreview ? 'hidden' : ''}`}>
+                            <div className="text-center">
+                              <svg className="w-16 h-16 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                              <div className="text-lg font-medium text-gray-500">No Preview</div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {template.price > 0 && (
                         <div className="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-sm px-3 py-1 rounded-full">
                           <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
