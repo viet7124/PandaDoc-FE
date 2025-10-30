@@ -34,6 +34,22 @@ export default function TemplatePage() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedLicenses, setSelectedLicenses] = useState<string[]>([]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const filteredTemplates = templates.filter(template => {
+    // Only show published templates
+    const isPublished = template.status === 'PUBLISHED';
+    
+    // Category filter
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(template.category.id);
+    
+    // License filter (Free/Premium based on price)
+    const matchesLicense = selectedLicenses.length === 0 || 
+      (selectedLicenses.includes('Free') && template.price === 0) ||
+      (selectedLicenses.includes('Premium') && template.price > 0);
+    
+    return isPublished && matchesCategory && matchesLicense;
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
   const templatesPerPage = 6;
   const totalPages = Math.ceil(filteredTemplates.length / templatesPerPage);
@@ -101,23 +117,6 @@ export default function TemplatePage() {
         : [...prev, license]
     );
   };
-
-  // Filter templates based on selected filters
-  const filteredTemplates = templates.filter(template => {
-    // Only show published templates
-    const isPublished = template.status === 'PUBLISHED';
-    
-    // Category filter
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(template.category.id);
-    
-    // License filter (Free/Premium based on price)
-    const matchesLicense = selectedLicenses.length === 0 || 
-      (selectedLicenses.includes('Free') && template.price === 0) ||
-      (selectedLicenses.includes('Premium') && template.price > 0);
-    
-    return isPublished && matchesCategory && matchesLicense;
-  });
 
   return (
     <div className="min-h-screen bg-gray-50">
