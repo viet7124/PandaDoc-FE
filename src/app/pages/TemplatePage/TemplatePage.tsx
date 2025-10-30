@@ -22,6 +22,7 @@ interface Template {
   author: Author;
   status?: 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'REJECTED';
   images?: string[];
+  previewImages?: string[]; // <-- Add this line
 }
 
 export default function TemplatePage() {
@@ -284,9 +285,12 @@ export default function TemplatePage() {
                     <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                       {(() => {
                         const apiBase = import.meta.env.VITE_BASE_URL + 'api';
-                        const previewSrc = (template.images && template.images.length > 0)
-                          ? template.images[0]
-                          : `${apiBase}/templates/${template.id}/preview`;
+                        const previewSrc =
+                          (template.images && template.images.length > 0)
+                            ? template.images[0]
+                            : (template['previewImages'] && template['previewImages'].length > 0)
+                              ? template['previewImages'][0]
+                              : `${apiBase}/templates/${template.id}/preview`;
                         return (
                           <img
                             src={previewSrc}

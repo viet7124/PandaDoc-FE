@@ -100,6 +100,15 @@ export default function TemplateManagement() {
   const [selectedPreviewFiles, setSelectedPreviewFiles] = useState<File[]>([]);
   const [isUploadingPreviews, setIsUploadingPreviews] = useState<boolean>(false);
 
+  // Pagination logic:
+  const [currentPage, setCurrentPage] = useState(1);
+  const templatesPerPage = 12;
+  const totalPages = Math.ceil(templates.length / templatesPerPage);
+  const visibleTemplates = templates.slice(
+    (currentPage - 1) * templatesPerPage,
+    currentPage * templatesPerPage
+  );
+
   // Fetch templates on mount and when status filter changes
   const fetchTemplates = useCallback(async () => {
     try {
@@ -776,37 +785,43 @@ export default function TemplateManagement() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTemplates.map((template) => (
+                {visibleTemplates.map((template) => (
                   <div key={template.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white">
                     {/* Template Preview Image */}
                     <div className="relative h-32 mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
                       {(() => {
-                        const apiBase = import.meta.env.VITE_BASE_URL + 'api';
-                        const previewSrc = (template.images && template.images.length > 0)
-                          ? template.images[0]
-                          : `${apiBase}/templates/${template.id}/preview`;
+                        const previewSrc =
+                          (template.previewImages && template.previewImages.length > 0)
+                            ? template.previewImages[0]
+                            : (template.images && template.images.length > 0)
+                            ? template.images[0]
+                            : undefined;
+                        if (previewSrc) {
+                          return (
+                            <img
+                              src={previewSrc}
+                              alt={`${template.title} preview`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          );
+                        }
+                        // Default fallback image
                         return (
-                          <img
-                            src={previewSrc}
-                            alt={`${template.title} preview`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // Fallback to default image if preview fails to load
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                              <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                              <div className="text-sm font-medium text-gray-500">No Preview</div>
+                            </div>
+                          </div>
                         );
                       })()}
-                      {/* Default fallback image */}
-                      <div className={`absolute inset-0 flex items-center justify-center ${template.images && template.images.length > 0 ? 'hidden' : ''}`}>
-                        <div className="text-center">
-                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
-                          <div className="text-sm font-medium text-gray-500">No Preview</div>
-                        </div>
-                      </div>
                     </div>
                     
                     <div className="flex items-start justify-between mb-4">
@@ -958,6 +973,40 @@ export default function TemplateManagement() {
             )}
           </div>
         </div>
+
+      {/* Pagination below template grid: */}
+      <div className="flex justify-center my-8">
+        <nav className="flex items-center space-x-2" aria-label="Pagination">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25 ${currentPage === i + 1 ? 'text-white bg-green-600 border-green-600' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-900'}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/25"
+          >
+            Next
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </nav>
       </div>
 
       {/* Upload Modal */}
