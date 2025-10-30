@@ -33,6 +33,7 @@ export default function MyLibrary() {
       const data = await getPurchasedTemplates();
       setPurchasedTemplates(data);
     } catch (error) {
+      console.error('Error fetching purchased templates:', error);
       toast.error('Error', 'Failed to fetch purchased templates');
     } finally {
       setLoadingPurchases(false);
@@ -45,6 +46,7 @@ export default function MyLibrary() {
       const data = await getCollections();
       setCollections(data);
     } catch (error) {
+      console.error('Error fetching collections:', error);
       toast.error('Error', 'Failed to fetch collections');
     } finally {
       setLoadingCollections(false);
