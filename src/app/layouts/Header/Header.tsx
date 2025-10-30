@@ -10,7 +10,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSeller, setIsSeller] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-  const [language, setLanguage] = useState<string>(localStorage.getItem('lang') || 'en');
+  const [language] = useState<string>(localStorage.getItem('lang') || 'en');
   const navigate = useNavigate();
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +48,9 @@ export default function Header() {
           const cachedUrl = getAvatarUrl(u.avatar);
           if (cachedUrl) setAvatarUrl(cachedUrl);
         }
-      } catch {}
+      } catch (e) {
+        console.error('Error loading avatar:', e);
+      }
 
       // Then fetch fresh profile to ensure latest avatar
       const data = await getCurrentUser();
@@ -59,6 +61,7 @@ export default function Header() {
         setAvatarUrl(undefined); // Clear if no avatar
       }
     } catch (e) {
+      console.error('Error loading avatar:', e);
       // ignore, will fallback to icon
     }
   };
