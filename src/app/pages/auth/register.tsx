@@ -22,6 +22,13 @@ export default function Register() {
   const [passwordError, setPasswordError] = useState<string>('');
   const [confirmPasswordError, setConfirmPasswordError] = useState<string>('');
 
+  const handleGoogleLogin = () => {
+    const backendUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8081';
+    const httpsBackendUrl = backendUrl.replace('http://', 'https://');
+    const oauth2Url = `${httpsBackendUrl}/oauth2/authorization/google`;
+    window.location.href = oauth2Url;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -300,6 +307,7 @@ export default function Register() {
             <div className="mt-6">
               <button
                 type="button"
+                onClick={handleGoogleLogin}
                 className="w-full inline-flex justify-center items-center py-3 px-4 border-2 border-gray-300 rounded-xl bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-500/25 transition-all duration-200"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
