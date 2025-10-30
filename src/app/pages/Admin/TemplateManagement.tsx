@@ -111,7 +111,7 @@ export default function TemplateManagement() {
     currentPage * templatesPerPage
   );
 
-  // Fetch templates on mount and when status filter changes
+  // Fetch templates on mount and when status filter changes ok
   const fetchTemplates = useCallback(async () => {
     try {
       setLoading(true);
