@@ -65,6 +65,7 @@ interface UpdateTemplateRequest {
   price?: number;
   categoryId?: number;
   status?: 'PUBLISHED' | 'PENDING' | 'REJECTED' | 'APPROVED';
+  fileUrl?: string;
 }
 
 // Get all templates (with optional status filter)

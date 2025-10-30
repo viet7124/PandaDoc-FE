@@ -7,7 +7,8 @@ import {
   uploadTemplate,
   getCategories,
   downloadTemplate,
-  updateTemplateStatus
+  updateTemplateStatus,
+  updateTemplate
 } from './services/templateManagementAPI';
 import type { Template } from './services/templateManagementAPI';
 import { uploadPreviewImages } from '../../pages/TemplatePage/services/templateAPI';
@@ -95,6 +96,17 @@ export default function TemplateManagement() {
     adminNote: ''
   });
   const [payoutErrors, setPayoutErrors] = useState<Record<string, string>>({});
+
+  // Edit template state
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [selectedTemplateForEdit, setSelectedTemplateForEdit] = useState<TemplateWithPreviews | null>(null);
+  const [editForm, setEditForm] = useState<{ title: string; description: string; price: string; fileUrl: string }>({
+    title: '',
+    description: '',
+    price: '',
+    fileUrl: ''
+  });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   
   // Preview images upload state
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
@@ -867,6 +879,22 @@ export default function TemplateManagement() {
                     <div className="pt-4 border-t border-gray-200">
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                          onClick={() => {
+                            setSelectedTemplateForEdit(template);
+                            setEditForm({
+                              title: template.title || '',
+                              description: template.description || '',
+                              price: String(template.price ?? ''),
+                              fileUrl: (template as { fileUrl?: string }).fileUrl || ''
+                            });
+                            setEditErrors({});
+                            setShowEditModal(true);
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                          Edit
+                        </button>
                         {(template.status === 'PENDING_REVIEW' || !template.status) && (
                           <>
                             <button
@@ -1233,6 +1261,119 @@ export default function TemplateManagement() {
                       <span>Upload Template</span>
                     </>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Template Modal */}
+      {showEditModal && selectedTemplateForEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Template</h2>
+              <button
+                onClick={() => { setShowEditModal(false); setSelectedTemplateForEdit(null); setEditErrors({}); }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const errs: Record<string, string> = {};
+                if (!editForm.title.trim()) errs.title = 'Title is required.';
+                if (!editForm.description.trim()) errs.description = 'Description is required.';
+                if (editForm.price === '' || isNaN(Number(editForm.price)) || Number(editForm.price) < 0) errs.price = 'Enter a valid price.';
+                setEditErrors(errs);
+                if (Object.keys(errs).length > 0 || !selectedTemplateForEdit) return;
+                try {
+                  setIsProcessing(true);
+                  await updateTemplateStatus; // no-op to satisfy lints if tree-shaking
+                  await updateTemplate(selectedTemplateForEdit.id, {
+                    title: editForm.title.trim(),
+                    description: editForm.description.trim(),
+                    price: Number(editForm.price),
+                    fileUrl: editForm.fileUrl.trim() || undefined,
+                  });
+                  await fetchTemplates();
+                  setShowEditModal(false);
+                  setSelectedTemplateForEdit(null);
+                  toast.success('Template Updated', 'Changes saved successfully.');
+                } catch (error) {
+                  console.error('Error updating template:', error);
+                  toast.error('Update Failed', error instanceof Error ? error.message : 'Could not update template');
+                } finally {
+                  setIsProcessing(false);
+                }
+              }}
+              className="p-6 space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {editErrors.title && <p className="mt-1 text-sm text-red-600">{editErrors.title}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {editErrors.description && <p className="mt-1 text-sm text-red-600">{editErrors.description}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price (VND) *</label>
+                  <input
+                    type="text"
+                    value={editForm.price}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {editErrors.price && <p className="mt-1 text-sm text-red-600">{editErrors.price}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
+                  <input
+                    type="text"
+                    value={editForm.fileUrl}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, fileUrl: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => { setShowEditModal(false); setSelectedTemplateForEdit(null); }}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isProcessing}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>
