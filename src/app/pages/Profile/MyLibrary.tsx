@@ -139,6 +139,8 @@ export default function MyLibrary() {
 
   return (
     <div className="my-library-page max-w-6xl mx-auto p-8">
+      <h1 className="text-2xl font-bold">My Library</h1>
+      <p className="text-gray-600">Manage your purchased templates and collections</p>
       <div className="flex mb-6 gap-4">
         <button
           className={`px-6 py-3 rounded-lg font-medium transition ${activeTab === 'purchased' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300'}`}
@@ -226,8 +228,8 @@ export default function MyLibrary() {
                             {collection.templates.map((template) => (
                               <li key={template.id} className="flex items-center justify-between py-3">
                                 <div>
-                                  <span className="font-medium text-gray-800 mr-4">{template.title}</span>
-                                  <span className="text-sm text-gray-500 mr-3">({template.category.name})</span>
+                                  <span className="font-medium text-gray-800 mr-4">{template.title || "Untitled"}</span>
+                                  <span className="text-sm text-gray-500 mr-3">({template.category?.name || "No category"})</span>
                                   <Link className="text-green-600 hover:underline text-sm" to={`/templates/${template.id}`}>View</Link>
                                 </div>
                                 <button
