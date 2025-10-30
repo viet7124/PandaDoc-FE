@@ -8,8 +8,7 @@ import {
   getCategories,
   downloadTemplate,
   updateTemplateStatus,
-  updateTemplate,
-  updateTemplateWithFile
+  updateTemplate
 } from './services/templateManagementAPI';
 import type { Template } from './services/templateManagementAPI';
 import { uploadPreviewImages } from '../../pages/TemplatePage/services/templateAPI';
@@ -107,7 +106,7 @@ export default function TemplateManagement() {
     price: '',
     fileUrl: ''
   });
-  const [editFile, setEditFile] = useState<File | null>(null);
+  // JSON-only update; no multipart file upload supported for edit
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   
   // Preview images upload state
@@ -1297,25 +1296,15 @@ export default function TemplateManagement() {
                 if (Object.keys(errs).length > 0 || !selectedTemplateForEdit) return;
                 try {
                   setIsProcessing(true);
-                  if (editFile) {
-                    await updateTemplateWithFile(selectedTemplateForEdit.id, {
-                      title: editForm.title.trim(),
-                      description: editForm.description.trim(),
-                      price: Number(editForm.price),
-                      file: editFile,
-                    });
-                  } else {
-                    await updateTemplate(selectedTemplateForEdit.id, {
-                      title: editForm.title.trim(),
-                      description: editForm.description.trim(),
-                      price: Number(editForm.price),
-                      fileUrl: editForm.fileUrl.trim() || undefined,
-                    });
-                  }
+                  await updateTemplate(selectedTemplateForEdit.id, {
+                    title: editForm.title.trim(),
+                    description: editForm.description.trim(),
+                    price: Number(editForm.price),
+                    fileUrl: editForm.fileUrl.trim() || undefined,
+                  });
                   await fetchTemplates();
                   setShowEditModal(false);
                   setSelectedTemplateForEdit(null);
-                  setEditFile(null);
                   toast.success('Template Updated', 'Changes saved successfully.');
                 } catch (error) {
                   console.error('Error updating template:', error);
@@ -1360,14 +1349,14 @@ export default function TemplateManagement() {
                   {editErrors.price && <p className="mt-1 text-sm text-red-600">{editErrors.price}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Replace File (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
                   <input
-                    type="file"
-                    accept=".docx,.pdf,.pptx,.xlsx,.doc,.ppt,.xls"
-                    onChange={(e) => setEditFile(e.target.files?.[0] || null)}
-                    className="w-full"
+                    type="text"
+                    value={editForm.fileUrl}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, fileUrl: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://..."
                   />
-                  <p className="text-xs text-gray-500 mt-1">Leave empty to keep current file.</p>
                 </div>
               </div>
 

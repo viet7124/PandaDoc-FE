@@ -192,35 +192,7 @@ export const updateTemplate = async (id: number, data: UpdateTemplateRequest): P
 };
 
 // Update template with optional file (multipart)
-export const updateTemplateWithFile = async (
-  id: number,
-  data: { title?: string; description?: string; price?: number; file?: File | null; fileUrl?: string }
-): Promise<Template> => {
-  try {
-    const formData = new FormData();
-    if (data.title !== undefined) formData.append('title', data.title);
-    if (data.description !== undefined) formData.append('description', data.description);
-    if (data.price !== undefined) formData.append('price', String(data.price));
-    if (data.file) formData.append('file', data.file);
-    if (data.fileUrl) formData.append('fileUrl', data.fileUrl);
-
-    const response = await axios.put<Template>(`${url}/templates/${id}`, formData, {
-      headers: { ...getAuthHeaders() },
-      timeout: 10000
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating template (multipart):', error);
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Access denied. Admin privileges required.');
-      }
-    }
-    throw error;
-  }
-};
+// Note: Backend does not accept multipart for edit; keep JSON-only updates.
 
 // Delete template
 export const deleteTemplate = async (id: number): Promise<void> => {
