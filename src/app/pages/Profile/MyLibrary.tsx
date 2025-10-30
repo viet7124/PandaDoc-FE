@@ -1,24 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '../../contexts/ToastContext';
-import { useConfirm } from '../../contexts/ConfirmContext';
 import {
   getCollections,
-  createCollection,
-  updateCollection,
-  deleteCollection,
-  removeTemplateFromCollection,
   type Collection,
 } from './services/collectionsAPI';
 import {
   getPurchasedTemplates,
   type PurchasedTemplate,
 } from './services/purchasesAPI';
-import { downloadTemplate } from '../TemplatePage/services/templateAPI';
 import { Link } from 'react-router-dom';
 
 export default function MyLibrary() {
   const toast = useToast();
-  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<'purchased' | 'collections'>('purchased');
   const [purchasedTemplates, setPurchasedTemplates] = useState<PurchasedTemplate[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
