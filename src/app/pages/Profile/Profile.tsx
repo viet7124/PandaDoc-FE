@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 import { 
@@ -27,8 +27,8 @@ import {
 export default function Profile() {
   const toast = useToast();
   const { confirm } = useConfirm();
-  const [searchParams] = useSearchParams();
-  const isLibraryView = searchParams.get('view') === 'library';
+  // REMOVE all searchParams and isLibraryView logic. Only render actual profile view in this file.
+  // All hooks, state, and component tree related to the library view (activeTab 'purchased', 'collections', all logic around purchased/collections) should be moved to MyLibrary.tsx instead.
   const [activeTab, setActiveTab] = useState<'account' | 'purchased' | 'collections'>(isLibraryView ? 'purchased' : 'account');
   const [selectedCategory, setSelectedCategory] = useState<number | 'REPORT' | 'OTHER' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -108,7 +108,7 @@ export default function Profile() {
     }
   };
     if (!isLibraryView) fetchUserProfile();
-  }, [isLibraryView]);
+  }, []);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

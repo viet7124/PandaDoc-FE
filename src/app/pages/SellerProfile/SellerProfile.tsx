@@ -104,7 +104,12 @@ export default function SellerProfile() {
 
   // Check if user has ROLE_SELLER and fetch dashboard data
   useEffect(() => {
-    const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+    let userRoles: string[] = [];
+    try {
+      userRoles = JSON.parse(sessionStorage.getItem('userRoles') || localStorage.getItem('userRoles') || '[]');
+    } catch {
+      userRoles = [];
+    }
     if (!userRoles.includes('ROLE_SELLER')) {
       navigate('/profile');
       return;
