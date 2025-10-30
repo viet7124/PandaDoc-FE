@@ -464,18 +464,16 @@ export default function SellerProfile() {
 
 
   const filteredTemplates = Array.isArray(templates) ? templates.filter(template => {
-    // Skip empty objects or objects without required properties
     if (!template || typeof template !== 'object' || Object.keys(template).length === 0) {
       return false;
     }
-    
-    // Add null checks for template properties
     const templateName = template?.name || '';
-    const templateStatus = template?.status || '';
-    
+    const rawStatus = (template?.status || '').toString().toLowerCase();
+    const mappedStatus = rawStatus === 'active' || rawStatus === 'published' ? 'approved' : rawStatus;
     const matchesSearch = templateName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || templateStatus === filterStatus;
-    return matchesSearch && matchesFilter;
+    const matchesAllowed = ['pending', 'rejected', 'approved'].includes(mappedStatus);
+    const matchesFilter = filterStatus === 'all' || mappedStatus === filterStatus;
+    return matchesSearch && matchesAllowed && matchesFilter;
   }) : [];
 
 
@@ -497,8 +495,23 @@ export default function SellerProfile() {
   };
 
   const handleUploadFormChange = (field: keyof UploadTemplateRequest, value: string | boolean) => {
-    setUploadForm({ ...uploadForm, [field]: value });
-    setUploadErrors({ ...uploadErrors, [field]: '' });
+    // When price changes, force isPremium according to the rule and disable toggle
+    if (field === 'price') {
+      const numeric = Number(value || 0);
+      const enforcedPremium = numeric > 0;
+      setUploadForm({ ...uploadForm, price: String(value), isPremium: enforcedPremium });
+      setUploadErrors({ ...uploadErrors, price: '' });
+      return;
+    }
+    // If user tries to toggle isPremium manually, ignore when price enforces value
+    if (field === 'isPremium') {
+      const numeric = Number(uploadForm.price || 0);
+      const enforcedPremium = numeric > 0;
+      setUploadForm({ ...uploadForm, isPremium: enforcedPremium });
+      return;
+    }
+    setUploadForm({ ...uploadForm, [field]: value } as UploadTemplateRequest);
+    setUploadErrors({ ...uploadErrors, [field as string]: '' });
   };
 
   const validateUploadForm = (): boolean => {
@@ -616,16 +629,7 @@ export default function SellerProfile() {
           >
             My Templates
           </button>
-          <button
-            onClick={() => setActiveTab('earnings')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              activeTab === 'earnings'
-                ? 'bg-green-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Earnings
-          </button>
+          {/* Earnings tab removed */}
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
@@ -719,13 +723,21 @@ export default function SellerProfile() {
                       </div>
                     </div>
                     <div className="absolute top-3 right-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                        template.status === 'active' ? 'bg-green-100 text-green-700' :
-                        template.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {(template.status || 'unknown').charAt(0).toUpperCase() + (template.status || 'unknown').slice(1)}
-                      </span>
+                      {(() => {
+                        const rawStatus = (template.status || '').toString().toLowerCase();
+                        const mappedStatus = rawStatus === 'active' || rawStatus === 'published' ? 'approved' : rawStatus;
+                        const badgeClass = mappedStatus === 'approved'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : mappedStatus === 'pending'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700';
+                        const label = mappedStatus.toUpperCase();
+                        return (
+                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${badgeClass}`}>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="p-5">
@@ -733,48 +745,13 @@ export default function SellerProfile() {
                     <p className="text-sm text-gray-500 mb-4">
                       {typeof template.category === 'string' ? template.category : 'Uncategorized'}
                     </p>
-                    
-                    <div className="grid grid-cols-3 gap-3 mb-4 py-3 border-t border-b border-gray-100">
-                      <div className="text-center">
-                        <p className="text-xs text-gray-500 mb-1">Sales</p>
-                        <p className="font-bold text-gray-900">{template.sales || 0}</p>
-                      </div>
-                      <div className="text-center border-l border-r border-gray-200">
-                        <p className="text-xs text-gray-500 mb-1">Views</p>
-                        <p className="font-bold text-gray-900">{template.views || 0}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-gray-500 mb-1">Rating</p>
-                        <p className="font-bold text-gray-900 flex items-center justify-center gap-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          {template.rating || 'N/A'}
-                        </p>
-                      </div>
+
+                    {/* Removed Sales | Views | Rating and Earned */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl font-bold text-green-600">{(template.price || 0).toLocaleString('vi-VN')} VND</span>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-green-600">${template.price || 0}</span>
-                      <span className="text-sm text-gray-500">
-                        Earned: ${((template.price || 0) * (template.sales || 0)).toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleDeleteTemplate(template.id)}
-                        disabled={deletingId === template.id}
-                        className="px-4 py-2.5 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingId === template.id ? (
-                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
+                    {/* Delete button removed */}
                   </div>
                 </div>
                   );
@@ -1251,13 +1228,14 @@ export default function SellerProfile() {
                   type="checkbox"
                   checked={uploadForm.isPremium}
                   onChange={(e) => handleUploadFormChange('isPremium', e.target.checked)}
-                  disabled={isUploading}
+                  disabled={isUploading || Number(uploadForm.price || 0) > 0 || Number(uploadForm.price || 0) === 0}
                   className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <label htmlFor="seller-premium" className="flex items-center gap-2 cursor-pointer">
                   <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                   <span className="text-sm font-semibold text-gray-700">Mark as Premium Template</span>
                 </label>
+                <span className="ml-auto text-xs text-gray-500">Auto-set by price</span>
               </div>
 
               {/* Form Actions */}

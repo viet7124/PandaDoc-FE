@@ -1152,7 +1152,11 @@ export default function TemplateManagement() {
                   <input
                     type="text"
                     value={uploadForm.price}
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, price: e.target.value }))}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      const numeric = Number(next || 0);
+                      setUploadForm(prev => ({ ...prev, price: next, isPremium: numeric > 0 }));
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="50000"
                     disabled={isProcessing}
@@ -1192,12 +1196,12 @@ export default function TemplateManagement() {
                   type="checkbox"
                   id="isPremium"
                   checked={uploadForm.isPremium}
-                  onChange={(e) => setUploadForm(prev => ({ ...prev, isPremium: e.target.checked }))}
+                  onChange={() => setUploadForm(prev => ({ ...prev, isPremium: prev.isPremium }))}
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  disabled={isProcessing}
+                  disabled={isProcessing || Number(uploadForm.price || 0) > 0 || Number(uploadForm.price || 0) === 0}
                 />
                 <label htmlFor="isPremium" className="ml-2 block text-sm text-gray-700">
-                  Mark as Premium Template
+                  Mark as Premium Template (auto-set by price)
                 </label>
               </div>
 
