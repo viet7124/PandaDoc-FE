@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeaders } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -22,14 +23,6 @@ export interface PurchasedTemplate {
   };
   acquiredAt: string;
 }
-
-const getAuthHeaders = () => {
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
 
 /**
  * GET /api/users/me/purchases

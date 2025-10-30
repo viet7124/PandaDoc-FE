@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerSeller } from '../SellerProfile/services/sellerAPI';
 import type { RegisterSellerData } from '../SellerProfile/services/sellerAPI';
+import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 
 export default function SellerRegister() {
   const navigate = useNavigate();
@@ -29,6 +30,20 @@ export default function SellerRegister() {
 
     try {
       await registerSeller(formData);
+      // Add ROLE_SELLER to userRoles in localStorage/sessionStorage
+      const rolesRaw = localStorage.getItem('userRoles') || sessionStorage.getItem('userRoles') || '[]';
+      let roles: string[] = [];
+      try {
+        roles = JSON.parse(rolesRaw);
+      } catch {}
+      if (!roles.includes('ROLE_SELLER')) {
+        roles.push('ROLE_SELLER');
+      }
+      // Save back to both (to cover both remember and non-remember cases)
+      localStorage.setItem('userRoles', JSON.stringify(roles));
+      sessionStorage.setItem('userRoles', JSON.stringify(roles));
+      // Dispatch role change event so navigation updates instantly
+      dispatchRoleChangeEvent();
       setShowSuccessModal(true);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
