@@ -141,116 +141,105 @@ export default function MyLibrary() {
     <div className="my-library-page max-w-6xl mx-auto p-8">
       <h1 className="text-2xl font-bold">My Library</h1>
       <p className="text-gray-600">Manage your purchased templates and collections</p>
-      <div className="flex mb-6 gap-4">
+      <div className="flex mb-8 gap-3 rounded-full bg-gray-50 shadow px-2 py-1 w-fit mx-auto">
         <button
-          className={`px-6 py-3 rounded-lg font-medium transition ${activeTab === 'purchased' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300'}`}
-          onClick={() => setActiveTab('purchased')}
-        >
+          className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-200 shadow-sm ${activeTab === 'purchased' ? 'bg-green-600 text-white scale-105' : 'text-gray-800 hover:bg-green-50 hover:text-green-700'}`}
+          style={{boxShadow: activeTab === 'purchased' ? '0 2px 8px rgba(16,185,129,.16)' : undefined}}
+          onClick={() => setActiveTab('purchased')}>
           Templates Purchased
         </button>
         <button
-          className={`px-6 py-3 rounded-lg font-medium transition ${activeTab === 'collections' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300'}`}
-          onClick={() => setActiveTab('collections')}
-        >
+          className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-200 shadow-sm ${activeTab === 'collections' ? 'bg-green-600 text-white scale-105' : 'text-gray-800 hover:bg-green-50 hover:text-green-700'}`}
+          style={{boxShadow: activeTab === 'collections' ? '0 2px 8px rgba(16,185,129,.16)' : undefined}}
+          onClick={() => setActiveTab('collections')}>
           My Collections
         </button>
       </div>
 
       {activeTab === 'purchased' && (
-        <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {loadingPurchases ? (
-            <div className="py-12 text-center">Loading purchases…</div>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {purchasedTemplates.map((purchase) => (
-                <li key={purchase.libraryId} className="py-4 flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="font-semibold">{purchase.template.title}</div>
-                    <div className="text-gray-500 text-sm">{purchase.template.category?.name}</div>
-                  </div>
-                  <Link className="text-green-600 hover:underline" to={`/templates/${purchase.template.id}`}>View</Link>
-                </li>
-              ))}
-              {purchasedTemplates.length === 0 && <li className="text-gray-400 text-center py-12">No purchased templates.</li>}
-            </ul>
-          )}
+            <div className="col-span-2 py-16 text-center"><div className="animate-spin rounded-full h-9 w-9 border-b-2 border-green-600 mx-auto mb-3" /> Loading purchases…</div>
+          ) : purchasedTemplates.length === 0 ? (
+            <div className="col-span-2 text-center py-24 opacity-60">
+              <svg className="w-14 h-14 text-green-300 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0V7a2 2 0 00-2-2H7a2 2 0 00-2 2v4m14 0v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-6" /></svg>
+              <div className="font-semibold text-lg">No purchased templates</div>
+              <p className="text-gray-500">Buy a template to see it here.</p>
+            </div>
+          ) : purchasedTemplates.map((purchase) => (
+            <div key={purchase.libraryId} className="bg-white shadow rounded-xl border border-gray-100 p-6 flex items-center gap-5 hover:shadow-md transition">
+              <div className="flex-1">
+                <div className="font-bold text-gray-900 text-lg mb-1">{purchase.template.title}</div>
+                <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full mr-3">{purchase.template.category?.name || "No category"} </span>
+                <div className="text-gray-500 text-sm mt-1">{purchase.template.description?.slice(0,80)}{purchase.template.description?.length > 80 ? '…' : ''}</div>
+              </div>
+              <Link to={`/templates/${purchase.template.id}`}
+                className="text-white bg-green-600 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200 focus:outline-none">View</Link>
+            </div>
+          ))}
         </div>
       )}
 
       {activeTab === 'collections' && (
-        <div>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold">My Collections</h2>
-            <button onClick={() => setShowCreateModal(true)} className="bg-green-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-green-700 focus:outline-none">+ Create Collection</button>
+        <div className="space-y-7">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">My Collections</h2>
+            <button onClick={() => setShowCreateModal(true)} className="bg-green-600 text-white font-bold px-6 py-2 rounded-xl shadow hover:bg-green-700 focus:outline-none transition">+ Create Collection</button>
           </div>
           {loadingCollections ? (
-            <div className="py-12 text-center">Loading collections…</div>
-          ) : (
-            <div className="space-y-6">
-              {collections.map((collection) => {
-                const isExpanded = expandedCollectionId === collection.id;
-                return (
-                  <div key={collection.id} className="bg-white shadow rounded-xl border border-gray-200 p-6 transition-all">
-                    <div className="flex justify-between items-center ">
-                      <div className="flex items-start flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-bold text-gray-900">{collection.name}</h3>
-                          <span className="ml-3 px-3 py-0.5 rounded-full bg-gray-100 text-sm text-gray-700">{collection.templateCount} templates</span>
-                        </div>
-                        {collection.description && <div className="text-gray-600 mb-2 max-w-lg whitespace-pre-line">{collection.description}</div>}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          className="px-3 py-1 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg"
-                          onClick={() => {
-                            setShowEditModal(collection);
-                            setNewCollectionName(collection.name);
-                            setNewCollectionDescription(collection.description);
-                          }}
-                        >Edit</button>
-                        <button
-                          className="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg"
-                          disabled={Boolean(deletingId && deletingId === collection.id)}
-                          onClick={() => handleDeleteCollection(collection.id)}
-                        >{deletingId === collection.id ? 'Deleting...' : 'Delete'}</button>
-                        <button
-                          className="px-3 py-1 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                          onClick={() => setExpandedCollectionId(isExpanded ? null : collection.id)}
-                        >{isExpanded ? 'Hide' : 'View Templates'}</button>
-                      </div>
-                    </div>
-                    {isExpanded && (
-                      <div className="mt-6">
-                        {collection.templates.length === 0 ? (
-                          <div className="text-gray-500 italic">No templates in this collection.</div>
-                        ) : (
-                          <ul className="divide-y divide-gray-100">
-                            {collection.templates.map((template) => (
-                              <li key={template.id} className="flex items-center justify-between py-3">
-                                <div>
-                                  <span className="font-medium text-gray-800 mr-4">{template.title || "Untitled"}</span>
-                                  <span className="text-sm text-gray-500 mr-3">({template.category?.name || "No category"})</span>
-                                  <Link className="text-green-600 hover:underline text-sm" to={`/templates/${template.id}`}>View</Link>
-                                </div>
-                                <button
-                                  onClick={() => handleRemoveTemplate(collection.id, template.id)}
-                                  disabled={!!(removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id)}
-                                  className="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg"
-                                >
-                                  {removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id ? 'Removing...' : 'Remove'}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
+            <div className="py-16 text-center">
+              <div className="animate-spin rounded-full h-9 w-9 border-b-2 border-green-600 mx-auto mb-3" /> Loading collections…
+            </div>
+          ) : collections.length === 0 ? (
+            <div className="text-center py-24 opacity-60">
+              <svg className="w-16 h-16 text-green-200 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeDasharray="4" /></svg>
+              <div className="font-semibold text-lg">No collections yet</div>
+              <p className="text-gray-500">Click "+ Create Collection" to start organizing your templates.</p>
+            </div>
+          ) : collections.map((collection) => {
+            const isExpanded = expandedCollectionId === collection.id;
+            return (
+              <div key={collection.id} className="bg-white shadow-lg rounded-2xl border flex flex-col gap-2 border-gray-100 p-6 transition-all">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="inline-block w-1 h-7 bg-green-400 rounded-lg mr-4 align-middle" />
+                    <span className="font-bold text-lg text-gray-900 align-middle">{collection.name}</span>
+                    <span className="ml-4 px-3 py-1 rounded-full bg-gray-50 border text-xs text-gray-500">{collection.templateCount} templates</span>
+                    {collection.description && <div className="text-gray-500 text-sm mt-2 mb-1 max-w-xl">{collection.description}</div>}
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <button className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg transition" onClick={() => {setShowEditModal(collection);setNewCollectionName(collection.name);setNewCollectionDescription(collection.description);}}>Edit</button>
+                    <button className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg transition" disabled={Boolean(deletingId && deletingId === collection.id)} onClick={() => handleDeleteCollection(collection.id)}>{deletingId === collection.id ? 'Deleting…' : 'Delete'}</button>
+                    <button className="px-3 py-1 text-gray-700 hover:bg-gray-100 rounded-lg transition" onClick={() => setExpandedCollectionId(isExpanded ? null : collection.id)}>{isExpanded ? 'Hide' : 'View Templates'}</button>
+                  </div>
+                </div>
+                {isExpanded && (
+                  <div className="mt-5 p-4 rounded-xl bg-gray-50">
+                    {collection.templates.length === 0 ? (
+                      <div className="text-gray-400 py-10 text-center">No templates in this collection.</div>
+                    ) : (
+                      <ul className="divide-y divide-gray-100">
+                        {collection.templates.map((template) => (
+                          <li key={template.id} className="flex items-center justify-between py-3 hover:bg-white group">
+                            <div>
+                              <span className="font-medium text-gray-900 mr-4">{template.title || "Untitled"}</span>
+                              <span className="text-xs px-3 py-1 bg-green-100 text-green-700 font-mono rounded-full ml-2">{template.category?.name || "No category"}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link to={`/templates/${template.id}`} className="text-green-600 hover:text-green-800 font-medium px-4 py-2 rounded-lg transition">View</Link>
+                              <button onClick={() => handleRemoveTemplate(collection.id, template.id)} disabled={!!(removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id)} className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50">
+                                {removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id ? 'Removing…' : 'Remove'}
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
-                );
-              })}
-              {collections.length === 0 && <div className="text-center text-gray-400 py-12">No collections.</div>}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
