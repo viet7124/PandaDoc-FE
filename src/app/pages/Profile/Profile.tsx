@@ -97,7 +97,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto p-8">
+    <div className="space-y-8 max-w-5xl mx-auto p-8">
       <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl p-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-black bg-opacity-20"></div>
         <div className="relative z-10 flex items-start justify-between">

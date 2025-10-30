@@ -42,7 +42,7 @@ export default function Header() {
     try {
       // Optimistic load from cached localStorage/sessionStorage user first
       try {
-        const cached = localStorage.getItem('user') || sessionStorage.getItem('user');
+        const cached = sessionStorage.getItem('user') || localStorage.getItem('user');
         if (cached) {
           const u = JSON.parse(cached);
           const cachedUrl = getAvatarUrl(u.avatar);
@@ -65,7 +65,7 @@ export default function Header() {
 
   // Load avatar when header mounts
   useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (token) loadAvatar();
   }, []);
 
@@ -253,22 +253,6 @@ export default function Header() {
                   </button>
                 </div>
               )}
-            </div>
-            {/* Language Selector */}
-            <div className="hidden md:block">
-              <select
-                aria-label="Language selector"
-                value={language}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setLanguage(val);
-                  localStorage.setItem('lang', val);
-                }}
-                className="px-2 py-2 text-sm border-2 border-gray-200 rounded-lg bg-white hover:border-green-500 transition-colors"
-              >
-                <option value="en">English</option>
-                <option value="vi">Tiếng Việt</option>
-              </select>
             </div>
             {/* Mobile menu button */}
             <button 

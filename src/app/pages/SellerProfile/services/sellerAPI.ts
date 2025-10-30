@@ -46,7 +46,8 @@ export interface UpdateSellerProfileData {
 // Get seller profile
 export const getSellerProfile = async (): Promise<SellerProfile> => {
   try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : {};
     const userId = user.id;
     
     console.log('🔍 Fetching seller profile for user:', userId);
@@ -71,6 +72,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
       });
       console.log('✅ Main endpoint successful');
     } catch (firstError) {
+      console.error('Error fetching seller profile:', firstError);
       console.log('🔄 First API call failed, trying alternative endpoint...');
       
       // Try alternative endpoint with user ID
@@ -85,6 +87,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
         });
         console.log('✅ Alternative endpoint worked');
       } catch (secondError) {
+        console.error('Error fetching seller profile:', secondError);
         console.log('🔄 Alternative endpoint also failed, trying user profile endpoint...');
         
         // Interface for user profile response
@@ -125,8 +128,8 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
       }
     }
     
-    console.log('📊 Raw seller profile response:', response.data);
-    console.log('📊 Response status:', response.status);
+    console.log('📊 Raw seller profile response:', response?.data);
+    console.log('📊 Response status:', response?.status);
     
     // Check if we got meaningful data
     const hasData = response.data && (
@@ -181,7 +184,8 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
     }
     
     // Get current user info for fallback
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : {};
     const userId = user.id || 1;
     
     // Manual fallback data based on database for user ID 2
@@ -328,7 +332,7 @@ interface RawSellerTemplate {
 // Get seller's templates (uses main templates endpoint and filters by current user)
 export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
   try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
     const userId = user.id;
     
     console.log('🔍 Fetching templates for user:', userId);
