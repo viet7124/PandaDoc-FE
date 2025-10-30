@@ -144,8 +144,11 @@ export default function MyLibrary() {
 
   return (
     <div className="my-library-page max-w-6xl mx-auto p-8">
-      <h1 className="text-2xl font-bold">My Library</h1>
-      <p className="text-gray-600">Manage your purchased templates and collections</p>
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900">My Library</h1>
+        <div className="mt-2 h-1.5 w-24 rounded-full bg-gradient-to-r from-green-500 via-emerald-500 to-blue-500 shadow-sm"></div>
+        <p className="mt-3 text-gray-600 text-base">Manage your purchased templates and collections</p>
+      </div>
       <div className="flex mb-8 gap-3 rounded-full bg-gray-50 shadow px-2 py-1 w-fit mx-auto">
         <button
           className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-200 shadow-sm ${activeTab === 'purchased' ? 'bg-green-600 text-white scale-105' : 'text-gray-800 hover:bg-green-50 hover:text-green-700'}`}
@@ -249,7 +252,6 @@ export default function MyLibrary() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-bold text-gray-900 mb-1 line-clamp-1">{template.title || 'Untitled'}</div>
-                                <span className="inline-block mb-1 bg-green-100 text-green-700 font-mono text-xs rounded-full px-3 py-1 max-w-xs truncate">{template.category?.name || 'No category'}</span>
                                 <div className="text-gray-500 text-xs mt-0.5 line-clamp-2">{template.description?.slice(0,70)}{template.description?.length > 70 ? '…' : ''}</div>
                               </div>
                               <div className="flex items-center gap-2">

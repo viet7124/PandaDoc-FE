@@ -97,10 +97,13 @@ export default function Profile() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto p-8">
-      <h1 className="text-2xl font-bold">Profile</h1>
-      <p className="text-gray-600">Manage your personal information</p>
-      <div className="bg-gradient-to-r from-green-500 via-blue-500 to-indigo-500 shadow-lg rounded-2xl p-9 mx-auto mb-10 relative max-w-4xl flex flex-col md:flex-row items-center gap-8">
+    <div className="space-y-8 w-11/12 max-w-[1400px] mx-auto p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900">Profile</h1>
+        <div className="mt-2 h-1.5 w-24 rounded-full bg-gradient-to-r from-green-500 via-emerald-500 to-blue-500 shadow-sm"></div>
+        <p className="mt-3 text-gray-600 text-base">Manage your personal information</p>
+      </div>
+      <div className="bg-gradient-to-r from-black via-zinc-900 to-neutral-800 shadow-lg rounded-2xl p-9 mx-auto mb-10 relative w-full max-w-[1400px] flex flex-col md:flex-row items-center gap-8">
         <div className="relative mb-6 md:mb-0">
           <div className="w-36 h-36 rounded-full border-4 border-white shadow-xl overflow-hidden">
             {avatarPreview || getAvatarUrl(userProfile.avatar)
