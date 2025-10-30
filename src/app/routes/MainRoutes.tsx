@@ -25,7 +25,7 @@ import VerifyEmail from "../pages/auth/verify-email";
 import AboutUs from "../pages/AboutUs/AboutUs";
 import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
 import TermsOfService from "../pages/TermsOfService/TermsOfService";
-import MyLibrary from './pages/Profile/MyLibrary';
+import MyLibrary from '../pages/Profile/MyLibrary';
 
 // Admin Pages
 import UserManagement from "../pages/Admin/UserManagement";
