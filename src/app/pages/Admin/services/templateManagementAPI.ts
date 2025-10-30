@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAuthHeaders } from '../../../utils/authUtils';
+import { getAuthHeaders, getAuthState } from '../../../utils/authUtils';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
 
@@ -166,8 +166,11 @@ export const createTemplate = async (data: CreateTemplateRequest): Promise<Templ
 export const updateTemplate = async (id: number, data: UpdateTemplateRequest): Promise<Template> => {
   try {
     // Use template controller for template updates
+    const { token } = getAuthState();
+    if (!token) throw new Error('Authentication failed. Please login again.');
+    const minimalAuthHeaders = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
     const response = await axios.put<Template>(`${url}/templates/${id}`, data, {
-      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      headers: minimalAuthHeaders,
       timeout: 10000
     });
     
@@ -178,8 +181,11 @@ export const updateTemplate = async (id: number, data: UpdateTemplateRequest): P
     if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
       // Fallback: some deployments restrict updates to admin path
       try {
+        const { token } = getAuthState();
+        if (!token) throw new Error('Authentication failed. Please login again.');
+        const minimalAuthHeaders = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
         const response = await axios.put<Template>(`${url}/admin/templates/${id}`, data, {
-          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          headers: minimalAuthHeaders,
           timeout: 10000
         });
         console.log('Template updated via admin endpoint:', response.data);
