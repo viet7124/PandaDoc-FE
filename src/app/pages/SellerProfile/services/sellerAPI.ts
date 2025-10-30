@@ -3,8 +3,6 @@ import { getAuthHeaders } from '../../../utils/authUtils';
 
 const API_URL = import.meta.env.VITE_BASE_URL + 'api'
 
-const getAuthHeadersLocal = () => getAuthHeaders();
-
 // Register as a seller
 export interface RegisterSellerData {
   businessName: string;
@@ -15,7 +13,7 @@ export const registerSeller = async (data: RegisterSellerData): Promise<void> =>
   try {
     const response = await axios.post(`${API_URL}/sellers/register`, data, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'Content-Type': 'application/json',
       },
     });
@@ -66,7 +64,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
       console.log('🔄 Trying main seller profile endpoint...');
       response = await axios.get<SellerProfile>(`${API_URL}/sellers/profile`, {
         headers: {
-          ...getAuthHeadersLocal(),
+          ...getAuthHeaders(),
           'ngrok-skip-browser-warning': 'true'
         },
         timeout: 10000
@@ -80,7 +78,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
         console.log('🔄 Trying alternative endpoint with user ID...');
         response = await axios.get<SellerProfile>(`${API_URL}/sellers/profile/${userId}`, {
           headers: {
-            ...getAuthHeadersLocal(),
+            ...getAuthHeaders(),
             'ngrok-skip-browser-warning': 'true'
           },
           timeout: 10000
@@ -104,7 +102,7 @@ export const getSellerProfile = async (): Promise<SellerProfile> => {
         // Try user profile endpoint as last resort
         response = await axios.get<UserProfileResponse>(`${API_URL}/users/me/profile`, {
           headers: {
-            ...getAuthHeadersLocal(),
+            ...getAuthHeaders(),
             'ngrok-skip-browser-warning': 'true'
           },
           timeout: 10000
@@ -222,7 +220,7 @@ export const updateSellerProfile = async (data: UpdateSellerProfileData): Promis
     
     const response = await axios.put(`${API_URL}/sellers/profile`, data, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true'
       },
@@ -275,7 +273,7 @@ export const getSellerDashboard = async (): Promise<SellerDashboard> => {
   try {
     const response = await axios.get<SellerDashboard>(`${API_URL}/sellers/dashboard`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
       },
     });
     return response.data;
@@ -338,7 +336,7 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
     // Fetch all templates - backend should return only user's templates when authenticated
     const response = await axios.get(`${API_URL}/templates`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
       params: {
@@ -423,7 +421,7 @@ export const getSellerEarnings = async () => {
   try {
     const response = await axios.get(`${API_URL}/sellers/earnings`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
       },
     });
     return response.data;
@@ -438,7 +436,7 @@ export const getSellerStats = async () => {
   try {
     const response = await axios.get(`${API_URL}/sellers/stats`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
       },
     });
     return response.data;
@@ -459,7 +457,7 @@ export const getCategories = async (): Promise<Category[]> => {
   try {
     const response = await axios.get<Category[]>(`${API_URL}/templates/categories`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -527,7 +525,7 @@ export const uploadTemplate = async (data: UploadTemplateRequest): Promise<unkno
 
     const response = await axios.post(`${API_URL}/templates/upload`, formData, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true',
         // Don't set Content-Type, let browser set it with boundary
       },
@@ -559,7 +557,7 @@ export const updateTemplate = async (templateId: number, templateData: FormData)
   try {
     const response = await axios.put(`${API_URL}/sellers/templates/${templateId}`, templateData, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         // Don't set Content-Type for FormData, let browser set it with boundary
       },
     });
@@ -577,7 +575,7 @@ export const deleteTemplate = async (templateId: number): Promise<void> => {
     
     const response = await axios.delete(`${API_URL}/templates/${templateId}`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -625,7 +623,7 @@ export const getSalesHistory = async (page: number = 1, limit: number = 10) => {
     const response = await axios.get(`${API_URL}/sellers/sales`, {
       params: { page, limit },
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
       },
     });
     return response.data;
@@ -643,7 +641,7 @@ export const requestWithdrawal = async (amount: number, method: string) => {
       { amount, method },
       {
         headers: {
-          ...getAuthHeadersLocal(),
+          ...getAuthHeaders(),
         },
       }
     );
@@ -704,7 +702,7 @@ export const getSellerPayouts = async (): Promise<SellerPayout[]> => {
   try {
     const response = await axios.get<SellerPayout[]>(`${API_URL}/sellers/payouts`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
     });
@@ -777,7 +775,7 @@ export const getEarningsSummary = async (): Promise<EarningsSummary> => {
     // Use the correct dashboard endpoint that returns totalEarnings
     const response = await axios.get(`${API_URL}/sellers/dashboard`, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
     });

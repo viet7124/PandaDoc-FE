@@ -47,15 +47,13 @@ interface TemplatesResponse {
   first: boolean;
 }
 
-const getAuthHeadersLocal = () => getAuthHeaders();
-
 export const getTemplates = async (): Promise<TemplatesResponse> => {
   try {
     const fullUrl = `${url}/templates`;
     console.log('GET Templates URL:', fullUrl);
     
     const response = await axios.get<TemplatesResponse>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Templates Response Status:', response.status);
@@ -77,7 +75,7 @@ export const getCategories = async (): Promise<Category[]> => {
     console.log('GET Categories URL:', fullUrl);
     
     const response = await axios.get<Category[]>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Categories Response Status:', response.status);
@@ -103,7 +101,7 @@ export const getTemplateById = async (id: number): Promise<Template> => {
     console.log('GET Template by ID URL:', fullUrl);
     
     const response = await axios.get<Template>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Template Response:', response.data);
@@ -136,7 +134,7 @@ export const downloadTemplate = async (id: number): Promise<{ blob: Blob; filena
     console.log('GET Download Template URL:', fullUrl);
     
     const response = await axios.get(fullUrl, {
-      headers: getAuthHeadersLocal(),
+      headers: getAuthHeaders(),
       responseType: 'blob'
     });
     
@@ -199,7 +197,7 @@ export const purchaseTemplate = async (templateId: number): Promise<PayOSRespons
     
     const response = await axios.post(fullUrl, { templateId }, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'Content-Type': 'application/json'
       }
     });
@@ -245,7 +243,7 @@ export const completePayment = async (orderId: string): Promise<PaymentVerificat
     
     const response = await axios.post(fullUrl, {}, {
       headers: {
-        ...getAuthHeadersLocal()
+        ...getAuthHeaders()
       },
       timeout: 10000 // 10 second timeout
     });
@@ -298,7 +296,7 @@ export const getTemplatePreview = async (id: number): Promise<string> => {
     console.log('GET Template Preview URL:', fullUrl);
     
     const response = await axios.get<string>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Preview Response:', response.data);
@@ -325,7 +323,7 @@ export const getPreviewImages = async (id: number): Promise<string[]> => {
     console.log('🔍 GET Preview Images URL:', fullUrl);
     
     const response = await axios.get<string[]>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('✅ Preview Images Response:', response.data);
@@ -434,7 +432,7 @@ export const getTemplateReviews = async (id: number): Promise<Review[]> => {
     console.log('GET Template Reviews URL:', fullUrl);
     
     const response = await axios.get<Review[]>(fullUrl, {
-      headers: getAuthHeadersLocal()
+      headers: getAuthHeaders()
     });
     
     console.log('Reviews Response:', response.data);
@@ -464,7 +462,7 @@ export const postTemplateReview = async (
     
     await axios.post(fullUrl, reviewData, {
       headers: {
-        ...getAuthHeadersLocal(),
+        ...getAuthHeaders(),
         'Content-Type': 'application/json'
       }
     });
