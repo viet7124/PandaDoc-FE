@@ -487,9 +487,9 @@ export default function TemplateManagement() {
       }
 
       setUploadForm(prev => ({ ...prev, file }));
+      // Clear only the 'file' error without mutating undefined
       setUploadErrors(prev => {
-        const { file: __, ...rest } = prev as unknown as { file: File | undefined };
-        (__ as unknown as { file: undefined }).file = undefined;
+        const { file: _ignored, ...rest } = prev; // eslint-disable-line @typescript-eslint/no-unused-vars
         return rest;
       });
     }
