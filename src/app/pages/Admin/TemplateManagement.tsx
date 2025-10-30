@@ -4,7 +4,7 @@ import {
   getAllTemplates, 
   rejectTemplate, 
   deleteTemplate,
-  uploadTemplate,
+  createTemplate,
   getCategories,
   downloadTemplate,
   updateTemplateStatus
@@ -529,13 +529,12 @@ export default function TemplateManagement() {
 
     try {
       setIsProcessing(true);
-      await uploadTemplate({
+      await createTemplate({
         file: uploadForm.file,
         title: uploadForm.title,
         description: uploadForm.description,
-        price: uploadForm.price,
-        categoryId: uploadForm.categoryId,
-        isPremium: uploadForm.isPremium
+        price: Number(uploadForm.price || 0),
+        categoryId: Number(uploadForm.categoryId),
       });
 
       // Reset form and close modal
