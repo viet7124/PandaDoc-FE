@@ -14,11 +14,16 @@ import {
 } from './services/purchasesAPI';
 import { Link } from 'react-router-dom';
 
+// Type fix to allow previewImages and images
+
+type PurchasedT = PurchasedTemplate & { template: PurchasedTemplate["template"] & { previewImages?: string[]; images?: string[] } };
+type CollectionT = Collection & { templates: (Collection["templates"][0] & { previewImages?: string[]; images?: string[] })[] };
+
 export default function MyLibrary() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState<'purchased' | 'collections'>('purchased');
-  const [purchasedTemplates, setPurchasedTemplates] = useState<PurchasedTemplate[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [purchasedTemplates, setPurchasedTemplates] = useState<PurchasedT[]>([]);
+  const [collections, setCollections] = useState<CollectionT[]>([]);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [loadingCollections, setLoadingCollections] = useState(false);
   const [expandedCollectionId, setExpandedCollectionId] = useState<number | null>(null);
@@ -166,17 +171,28 @@ export default function MyLibrary() {
               <div className="font-semibold text-lg">No purchased templates</div>
               <p className="text-gray-500">Buy a template to see it here.</p>
             </div>
-          ) : purchasedTemplates.map((purchase) => (
-            <div key={purchase.libraryId} className="bg-white shadow rounded-xl border border-gray-100 p-6 flex items-center gap-5 hover:shadow-md transition">
-              <div className="flex-1">
-                <div className="font-bold text-gray-900 text-lg mb-1">{purchase.template.title}</div>
-                <span className="bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full mr-3">{purchase.template.category?.name || "No category"} </span>
-                <div className="text-gray-500 text-sm mt-1">{purchase.template.description?.slice(0,80)}{purchase.template.description?.length > 80 ? '…' : ''}</div>
+          ) : purchasedTemplates.map((purchase) => {
+            const t = purchase.template as typeof purchase.template & { previewImages?: string[]; images?: string[] };
+            const previewSrc = t.previewImages?.[0] || t.images?.[0] || null;
+            return (
+              <div key={purchase.libraryId} className="bg-white shadow rounded-xl border border-gray-100 p-4 flex items-center gap-5 hover:shadow-md transition">
+                <div className="w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {previewSrc ? (
+                    <img src={previewSrc} alt={t.title + ' preview'} className="object-cover w-full h-full" />
+                  ) : (
+                    <svg className="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{t.title}</div>
+                  <span className="inline-block mb-1 bg-green-50 text-green-700 text-xs font-semibold px-3 py-1 rounded-full max-w-xs truncate">{t.category?.name || 'No category'}</span>
+                  <div className="text-gray-500 text-sm mt-0.5 line-clamp-2">{t.description?.slice(0,80)}{t.description?.length > 80 ? '…' : ''}</div>
+                </div>
+                <Link to={`/templates/${t.id}`}
+                  className="ml-2 text-white bg-green-600 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200 focus:outline-none whitespace-nowrap">View</Link>
               </div>
-              <Link to={`/templates/${purchase.template.id}`}
-                className="text-white bg-green-600 font-semibold px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200 focus:outline-none">View</Link>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -219,20 +235,32 @@ export default function MyLibrary() {
                       <div className="text-gray-400 py-10 text-center">No templates in this collection.</div>
                     ) : (
                       <ul className="divide-y divide-gray-100">
-                        {collection.templates.map((template) => (
-                          <li key={template.id} className="flex items-center justify-between py-3 hover:bg-white group">
-                            <div>
-                              <span className="font-medium text-gray-900 mr-4">{template.title || "Untitled"}</span>
-                              <span className="text-xs px-3 py-1 bg-green-100 text-green-700 font-mono rounded-full ml-2">{template.category?.name || "No category"}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Link to={`/templates/${template.id}`} className="text-green-600 hover:text-green-800 font-medium px-4 py-2 rounded-lg transition">View</Link>
-                              <button onClick={() => handleRemoveTemplate(collection.id, template.id)} disabled={!!(removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id)} className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50">
-                                {removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id ? 'Removing…' : 'Remove'}
-                              </button>
-                            </div>
-                          </li>
-                        ))}
+                        {collection.templates.map((template) => {
+                          const tpl = template as typeof template & { previewImages?: string[]; images?: string[] };
+                          const previewSrc = tpl.previewImages?.[0] || tpl.images?.[0] || null;
+                          return (
+                            <li key={template.id} className="flex items-center gap-4 py-3 hover:bg-white group">
+                              <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                {previewSrc ? (
+                                  <img src={previewSrc} alt={template.title + ' preview'} className="object-cover w-full h-full" />
+                                ) : (
+                                  <svg className="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-gray-900 mb-1 line-clamp-1">{template.title || 'Untitled'}</div>
+                                <span className="inline-block mb-1 bg-green-100 text-green-700 font-mono text-xs rounded-full px-3 py-1 max-w-xs truncate">{template.category?.name || 'No category'}</span>
+                                <div className="text-gray-500 text-xs mt-0.5 line-clamp-2">{template.description?.slice(0,70)}{template.description?.length > 70 ? '…' : ''}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Link to={`/templates/${template.id}`} className="text-green-600 hover:text-green-800 font-medium px-4 py-2 rounded-lg transition whitespace-nowrap">View</Link>
+                                <button onClick={() => handleRemoveTemplate(collection.id, template.id)} disabled={!!(removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id)} className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 whitespace-nowrap">
+                                  {removingTemplate && removingTemplate.collectionId === collection.id && removingTemplate.templateId === template.id ? 'Removing…' : 'Remove'}
+                                </button>
+                              </div>
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </div>
