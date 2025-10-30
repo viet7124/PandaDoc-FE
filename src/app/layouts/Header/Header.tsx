@@ -16,8 +16,14 @@ export default function Header() {
 
   // Check if user is a seller
   useEffect(() => {
+    // Utility to check both storage types for userRoles
     const checkSellerStatus = () => {
-      const userRoles = JSON.parse(localStorage.getItem('userRoles') || '[]');
+      let userRoles: string[] = [];
+      try {
+        userRoles = JSON.parse(sessionStorage.getItem('userRoles') || localStorage.getItem('userRoles') || '[]');
+      } catch {
+        userRoles = [];
+      }
       setIsSeller(userRoles.includes('ROLE_SELLER'));
     };
 
