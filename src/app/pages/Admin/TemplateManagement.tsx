@@ -38,6 +38,8 @@ interface PayoutFormData {
   adminNote: string;
 }
 
+type TemplateWithPreviews = Template & { previewImages?: string[] };
+
 export default function TemplateManagement() {
   const toast = useToast();
   const { confirm } = useConfirm();
@@ -70,7 +72,7 @@ export default function TemplateManagement() {
   }, [navigate, toast]);
   
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<TemplateWithPreviews[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -87,7 +89,7 @@ export default function TemplateManagement() {
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
   const [downloadingTemplateId, setDownloadingTemplateId] = useState<number | null>(null);
   const [showPayoutModal, setShowPayoutModal] = useState<boolean>(false);
-  const [selectedTemplateForPayout, setSelectedTemplateForPayout] = useState<Template | null>(null);
+  const [selectedTemplateForPayout, setSelectedTemplateForPayout] = useState<TemplateWithPreviews | null>(null);
   const [payoutForm, setPayoutForm] = useState<PayoutFormData>({
     agreedPrice: 0,
     adminNote: ''
@@ -310,7 +312,7 @@ export default function TemplateManagement() {
       // Best-effort notification to seller
       if (selectedTemplateForPayout) {
         trySendNotification({
-          username: (selectedTemplateForPayout as any).sellerUsername, // may or may not be present depending on API
+          username: (selectedTemplateForPayout as unknown as { sellerUsername: string }).sellerUsername, // may or may not be present depending on API
           title: 'Template Approved',
           message: `Your template "${selectedTemplateForPayout.title}" has been approved. Payout ${payoutForm.agreedPrice.toLocaleString()} VND created.`,
           type: 'SUCCESS',
@@ -371,7 +373,7 @@ export default function TemplateManagement() {
     }
   };
 
-  const handleDownload = async (template: Template) => {
+  const handleDownload = async (template: TemplateWithPreviews) => {
     try {
       setDownloadingTemplateId(template.id);
       console.log('🔽 Admin downloading template:', template.id);
@@ -486,7 +488,8 @@ export default function TemplateManagement() {
 
       setUploadForm(prev => ({ ...prev, file }));
       setUploadErrors(prev => {
-        const { file: _, ...rest } = prev;
+        const { file: __, ...rest } = prev as unknown as { file: File | undefined };
+        (__ as unknown as { file: undefined }).file = undefined;
         return rest;
       });
     }
@@ -1470,5 +1473,7 @@ export default function TemplateManagement() {
         </div>
       )}
     </div>
+    </div>
   );
 }
+
