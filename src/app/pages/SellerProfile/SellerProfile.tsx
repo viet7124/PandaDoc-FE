@@ -28,14 +28,12 @@ import {
   type SellerTemplate
 } from './services/sellerAPI';
 import { useToast } from '../../contexts/ToastContext';
-import { useConfirm } from '../../contexts/ConfirmContext';
 import { validateTemplateFile } from '../../utils/fileValidation';
 
 
 export default function SellerProfile() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState<'templates' | 'earnings' | 'profile'>('templates');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'pending' | 'rejected'>('all');
