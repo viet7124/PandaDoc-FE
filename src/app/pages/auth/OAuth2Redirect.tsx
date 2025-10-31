@@ -29,15 +29,18 @@ export default function OAuth2Redirect() {
 
         console.log('🔍 OAuth2 callback received:', { token, userId, username, email, roles });
         
-        // Debug: Log current localStorage state
-        console.log('Current localStorage state:', {
-          token: localStorage.getItem('token'),
-          user: localStorage.getItem('user'),
-          userRoles: localStorage.getItem('userRoles')
+        // Debug: Log current storage state
+        console.log('Current storage state:', {
+          token_session: sessionStorage.getItem('token'),
+          token_local: localStorage.getItem('token'),
+          user_session: sessionStorage.getItem('user'),
+          user_local: localStorage.getItem('user'),
+          roles_session: sessionStorage.getItem('userRoles'),
+          roles_local: localStorage.getItem('userRoles')
         });
 
         // Check if we already processed this token (prevent loop)
-        const existingToken = localStorage.getItem('token');
+        const existingToken = sessionStorage.getItem('token') || localStorage.getItem('token');
         if (existingToken && existingToken === token) {
           console.log('Token already processed, redirecting to home to prevent loop');
           navigate('/home');
@@ -65,7 +68,13 @@ export default function OAuth2Redirect() {
         // Avoid blindly defaulting to ROLE_USER which can downgrade a seller on re-login
         let userRoles: string[] = [];
         if (roles) {
-          userRoles = JSON.parse(roles) as string[];
+          try {
+            const parsed = JSON.parse(roles);
+            userRoles = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            // Fallback: comma-separated string like "ROLE_USER,ROLE_SELLER"
+            userRoles = roles.split(',').map(r => r.trim()).filter(Boolean);
+          }
         }
         
         // Create user data with all required fields
