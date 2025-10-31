@@ -52,10 +52,12 @@ export default function Register() {
     
     // Basic validation
     const pwdCheck = validatePasswordStrength(formData.password);
+    const confirmMismatch = formData.password !== formData.confirmPassword;
     setPasswordError(pwdCheck.valid ? '' : (pwdCheck.error ?? 'Password does not meet requirements'));
-    setConfirmPasswordError(formData.password === formData.confirmPassword ? '' : 'Passwords do not match');
-    if (!pwdCheck.valid || formData.password !== formData.confirmPassword) {
-      toast.error('Invalid password', passwordError || confirmPasswordError || pwdCheck.error || 'Please fix the password errors');
+    setConfirmPasswordError(confirmMismatch ? 'Passwords do not match' : '');
+    if (!pwdCheck.valid || confirmMismatch) {
+      const msg = !pwdCheck.valid ? (pwdCheck.error ?? 'Password does not meet requirements') : 'Passwords do not match';
+      toast.error('Invalid password', msg);
       return;
     }
 
@@ -135,9 +137,6 @@ export default function Register() {
                   placeholder="Choose a username"
                 />
               </div>
-              {passwordError && (
-                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
-              )}
             </div>
 
             {/* Email Field */}
@@ -162,9 +161,6 @@ export default function Register() {
                   placeholder="Enter your email"
                 />
               </div>
-              {confirmPasswordError && (
-                <p className="mt-2 text-sm text-red-600">{confirmPasswordError}</p>
-              )}
             </div>
 
             {/* Password Field */}
@@ -185,7 +181,7 @@ export default function Register() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200"
+                  className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition-all duration-200 ${passwordError ? 'border-red-400 focus:ring-red-500/25 focus:border-red-500' : 'border-gray-200 focus:ring-green-500/25 focus:border-green-500'}`}
                   placeholder="Create a password"
                 />
                 <button
@@ -204,6 +200,9 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
+              )}
             </div>
 
             {/* Confirm Password Field */}
@@ -224,7 +223,7 @@ export default function Register() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200"
+                  className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition-all duration-200 ${confirmPasswordError ? 'border-red-400 focus:ring-red-500/25 focus:border-red-500' : 'border-gray-200 focus:ring-green-500/25 focus:border-green-500'}`}
                   placeholder="Confirm your password"
                 />
                 <button
@@ -243,6 +242,9 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {confirmPasswordError && (
+                <p className="mt-2 text-sm text-red-600">{confirmPasswordError}</p>
+              )}
             </div>
 
             {/* Terms and Conditions */}
