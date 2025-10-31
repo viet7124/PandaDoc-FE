@@ -77,30 +77,33 @@ export default function OAuth2Redirect() {
           }
         }
         
-        // Create user data with all required fields
+        // Create preliminary user data (id may be missing). Never default to 1 to avoid mis-filtering
         const userData: UserData = {
-          id: userId ? parseInt(userId) : 1, // Default to 1 if no ID provided
+          id: userId ? parseInt(userId) : 0,
           username: username || 'Google User',
           email: email || '',
           roles: userRoles
         };
-        
-        // Store initial auth data (may have empty roles). Use session-based storage for OAuth2
+
+        // Store initial auth data (may have empty roles/id). Use session-based storage for OAuth2
         setAuthData(token, userData, userRoles, false);
 
-        // If roles were not provided in the callback, fetch from backend and update storage
-        if (userRoles.length === 0) {
-          getCurrentUser()
-            .then((profile) => {
-              const mergedRoles: string[] = Array.isArray(profile.roles) ? profile.roles : [];
-              const updatedUser: UserData = { ...userData, roles: mergedRoles };
-              setAuthData(token, updatedUser, mergedRoles, false);
-              dispatchRoleChangeEvent();
-            })
-            .catch((err) => {
-              console.error('Failed to fetch roles after OAuth2 login:', err);
-            });
-        }
+        // Always fetch current profile to get authoritative id and roles, then update storage
+        getCurrentUser()
+          .then((profile) => {
+            const mergedRoles: string[] = Array.isArray(profile.roles) ? profile.roles : userRoles;
+            const updatedUser: UserData = {
+              id: typeof profile.id === 'number' ? profile.id : userData.id,
+              username: profile.username || userData.username,
+              email: profile.email || userData.email,
+              roles: mergedRoles
+            };
+            setAuthData(token, updatedUser, mergedRoles, false);
+            dispatchRoleChangeEvent();
+          })
+          .catch((err) => {
+            console.error('Failed to fetch profile after OAuth2 login:', err);
+          });
 
         // Debug: Log final localStorage state
         console.log('Final localStorage state after OAuth2:', {
