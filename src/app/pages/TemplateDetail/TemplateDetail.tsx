@@ -629,12 +629,16 @@ export default function TemplateDetail() {
               </h1>
               
               <div className="flex items-center space-x-4 mb-6">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg mr-2 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">🐼</span>
-                </div>
-                <span className="text-gray-700 font-medium">By {template.author.username}</span>
-              </div>
+                {(() => {
+                  const name = template.author?.username || '';
+                  const isAdminAuthor = /admin/i.test(name);
+                  const label = isAdminAuthor ? 'By ADMIN' : `By ${name}`;
+                  return (
+                    <div className="flex items-center">
+                      <span className={`text-gray-700 font-medium ${isAdminAuthor ? 'px-2 py-1 rounded-md bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-sm' : ''}`}>{label}</span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Rating and Stats */}

@@ -11,6 +11,7 @@ import {
   X,
   User
 } from 'lucide-react';
+import { clearAuthData } from "../../utils/authUtils";
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -18,9 +19,7 @@ export default function AdminLayout() {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRoles');
+    clearAuthData();
     navigate('/login');
   };
 

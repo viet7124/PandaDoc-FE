@@ -371,9 +371,15 @@ export default function Home() {
                       </p>
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col space-y-1">
-                          <span className="text-xs text-gray-500">
-                            by {template.author?.username || 'Unknown Author'}
-                          </span>
+                          {(() => {
+                            const name = template.author?.username || 'Unknown Author';
+                            const isAdminAuthor = /admin/i.test(name);
+                            return (
+                              <span className={`text-xs ${isAdminAuthor ? 'text-white bg-gray-900 px-2 py-0.5 rounded-md' : 'text-gray-500'}`}>
+                                {isAdminAuthor ? 'By ADMIN' : `by ${name}`}
+                              </span>
+                            );
+                          })()}
                           <span className="font-bold text-gray-900">
                             {template.price === 0 ? (
                               <span className="text-green-600">Free</span>

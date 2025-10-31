@@ -711,7 +711,11 @@ export default function SellerProfile() {
 
                     {/* Removed Sales | Views | Rating and Earned */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl font-bold text-green-600">{(template.price || 0).toLocaleString('vi-VN')} VND</span>
+                      {template.price === 0 ? (
+                        <span className="text-2xl font-bold text-green-600">Free</span>
+                      ) : (
+                        <span className="text-2xl font-bold text-green-600">{(template.price || 0).toLocaleString('vi-VN')} VND</span>
+                      )}
                     </div>
 
                     {/* Delete button removed */}

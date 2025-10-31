@@ -372,9 +372,15 @@ export default function SearchPage() {
                         <span className="inline-flex items-center px-2 py-1 bg-gray-100 rounded-full">
                           {template.category.name}
                         </span>
-                        <span className="text-gray-600">
-                          by {template.author.username}
-                        </span>
+                        {(() => {
+                          const name = template.author?.username || '';
+                          const isAdminAuthor = /admin/i.test(name);
+                          return (
+                            <span className={`${isAdminAuthor ? 'text-white bg-gray-900 px-2 py-0.5 rounded-md' : 'text-gray-600'}`}>
+                              {isAdminAuthor ? 'By ADMIN' : `by ${name}`}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex items-center justify-between">

@@ -76,8 +76,8 @@ export default function OAuth2Redirect() {
           roles: userRoles
         };
         
-        // Store initial auth data (may have empty roles). Remember by default for OAuth2
-        setAuthData(token, userData, userRoles, true);
+        // Store initial auth data (may have empty roles). Use session-based storage for OAuth2
+        setAuthData(token, userData, userRoles, false);
 
         // If roles were not provided in the callback, fetch from backend and update storage
         if (userRoles.length === 0) {
@@ -85,7 +85,7 @@ export default function OAuth2Redirect() {
             .then((profile) => {
               const mergedRoles: string[] = Array.isArray(profile.roles) ? profile.roles : [];
               const updatedUser: UserData = { ...userData, roles: mergedRoles };
-              setAuthData(token, updatedUser, mergedRoles, true);
+              setAuthData(token, updatedUser, mergedRoles, false);
               dispatchRoleChangeEvent();
             })
             .catch((err) => {

@@ -338,9 +338,15 @@ export default function TemplatePage() {
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             {template.category.name}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            by {template.author.username}
-                          </span>
+                          {(() => {
+                            const name = template.author?.username || '';
+                            const isAdminAuthor = /admin/i.test(name);
+                            return (
+                              <span className={`text-sm ${isAdminAuthor ? 'text-white bg-gray-900 px-2 py-0.5 rounded-md' : 'text-gray-500'}`}>
+                                {isAdminAuthor ? 'By ADMIN' : `by ${name}`}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
 

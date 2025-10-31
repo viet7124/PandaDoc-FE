@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { User, LogOut } from "lucide-react";
 import avatarImage from "../../assets/avatar.png";
 import { addRoleChangeListener } from "../../utils/roleEvents";
+import { clearAuthData } from "../../utils/authUtils";
 import { getCurrentUser, getAvatarUrl } from "../../pages/Profile/services/authAPI";
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -96,9 +97,7 @@ export default function Header() {
   }, [language]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRoles');
+    clearAuthData();
     navigate('/login');
     setIsProfileMenuOpen(false);
   };
