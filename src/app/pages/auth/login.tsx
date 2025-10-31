@@ -4,7 +4,7 @@ import { login, type LoginResponse } from './services/authAPI';
 import avatarImage from '../../assets/avatar.png';
 import bambooBackground from '../../assets/aesthetic-bamboo-forest-desktop-wallpaper.jpg';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
-import { setAuthData, type UserData, validatePasswordStrength } from '../../utils/authUtils';
+import { setAuthData, type UserData } from '../../utils/authUtils';
 import { useToast } from '../../contexts/ToastContext';
 import LegalDocumentModal from '../../components/LegalDocumentModal';
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../../constants/legalDocuments';
@@ -14,7 +14,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
   // removed rememberMe state
@@ -22,23 +21,12 @@ export default function Login() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
-    if (e.target.name === 'password') {
-      const check = validatePasswordStrength(e.target.value);
-      setPasswordError(check.valid ? '' : (check.error ?? 'Password must be at least 8 characters long'));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    // quick client-side validation
-    const pwdCheck = validatePasswordStrength(formData.password);
-    if (!pwdCheck.valid) {
-      setPasswordError(pwdCheck.error ?? 'Password must be at least 8 characters long');
-      setLoading(false);
-      return;
-    }
 
     try {
       console.log('🔐 Starting login process...');
@@ -182,7 +170,7 @@ export default function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition-all duration-200 ${passwordError ? 'border-red-400 focus:ring-red-500/25 focus:border-red-500' : 'border-gray-200 focus:ring-green-500/25 focus:border-green-500'}`}
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200"
                   placeholder="Enter your password"
                 />
                 <button
@@ -201,9 +189,6 @@ export default function Login() {
                   )}
                 </button>
               </div>
-              {passwordError && (
-                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
-              )}
             </div>
 
             {/* Remember Me & Forgot Password */}

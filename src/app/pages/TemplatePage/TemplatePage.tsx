@@ -109,6 +109,8 @@ export default function TemplatePage() {
         ? prev.filter(c => c !== categoryId)
         : [...prev, categoryId]
     );
+    // Reset pagination when filters change so results start from page 1
+    setCurrentPage(1);
   };
 
   const handleLicenseChange = (license: string) => {
@@ -117,6 +119,8 @@ export default function TemplatePage() {
         ? prev.filter(l => l !== license)
         : [...prev, license]
     );
+    // Reset pagination when filters change so results start from page 1
+    setCurrentPage(1);
   };
 
   return (
@@ -255,13 +259,7 @@ export default function TemplatePage() {
                       </p>
                     )}
                   </div>
-                  
-                  <select className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200">
-                    <option>Most relevant</option>
-                    <option>Most popular</option>
-                    <option>Newest first</option>
-                    <option>Oldest first</option>
-                  </select>
+                  {/* Sort dropdown removed per request */}
                 </div>
               </>
             )}
