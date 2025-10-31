@@ -30,6 +30,11 @@ export interface Template {
   images?: string[];
 }
 
+export interface UpdateFileResponse {
+  fileUrl: string;
+  id?: number;
+}
+
 interface TemplatesResponse {
   content: Template[];
   pageable: {
@@ -217,8 +222,40 @@ export const updateTemplate = async (id: number, data: UpdateTemplateRequest): P
   }
 };
 
-// Update template with optional file (multipart)
-// Note: Backend does not accept multipart for edit; keep JSON-only updates.
+// Update template file (multipart) and return the new fileUrl
+export const updateTemplateFile = async (id: number, file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const tryPut = async (endpoint: string): Promise<string> => {
+    const response = await axios.put<Template | UpdateFileResponse>(endpoint, formData, {
+      headers: {
+        ...getAuthHeaders()
+        // Let browser set Content-Type with boundary
+      },
+      timeout: 20000
+    });
+    const data = response.data as unknown;
+    if (typeof data === 'object' && data !== null) {
+      const obj = data as { fileUrl?: string } & { [k: string]: unknown };
+      if (obj.fileUrl && typeof obj.fileUrl === 'string') return obj.fileUrl;
+    }
+    // If backend returns full Template
+    const maybeTemplate = response.data as Template;
+    if (maybeTemplate && typeof maybeTemplate.fileUrl === 'string') return maybeTemplate.fileUrl;
+    throw new Error('File updated but no fileUrl returned');
+  };
+
+  try {
+    return await tryPut(`${url}/templates/${id}/file`);
+  } catch (error) {
+    if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 404)) {
+      // Fallback to admin path
+      return await tryPut(`${url}/admin/templates/${id}/file`);
+    }
+    throw error as Error;
+  }
+};
 
 // Delete template
 export const deleteTemplate = async (id: number): Promise<void> => {

@@ -8,7 +8,8 @@ import {
   getCategories,
   downloadTemplate,
   updateTemplateStatus,
-  updateTemplate
+  updateTemplate,
+  updateTemplateFile
 } from './services/templateManagementAPI';
 import type { Template } from './services/templateManagementAPI';
 import { uploadPreviewImages } from '../../pages/TemplatePage/services/templateAPI';
@@ -100,11 +101,12 @@ export default function TemplateManagement() {
   // Edit template state
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [selectedTemplateForEdit, setSelectedTemplateForEdit] = useState<TemplateWithPreviews | null>(null);
-  const [editForm, setEditForm] = useState<{ title: string; description: string; price: string; fileUrl: string }>({
+  const [editForm, setEditForm] = useState<{ title: string; description: string; price: string; fileUrl: string; file: File | null }>({
     title: '',
     description: '',
     price: '',
-    fileUrl: ''
+    fileUrl: '',
+    file: null
   });
   // JSON-only update; no multipart file upload supported for edit
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
@@ -413,6 +415,34 @@ export default function TemplateManagement() {
     } finally {
       setDownloadingTemplateId(null);
     }
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) {
+      setEditForm(prev => ({ ...prev, file: null }));
+      return;
+    }
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/pdf', // .pdf
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/msword', // .doc
+      'application/vnd.ms-powerpoint', // .ppt
+      'application/vnd.ms-excel' // .xls
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      setEditErrors(prev => ({ ...prev, file: 'Invalid file type selected.' }));
+      return;
+    }
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      setEditErrors(prev => ({ ...prev, file: 'File size exceeds 50MB limit.' }));
+      return;
+    }
+    setEditErrors(prev => ({ ...prev, file: '' }));
+    setEditForm(prev => ({ ...prev, file }));
   };
 
   // Handle preview image upload
@@ -887,7 +917,8 @@ export default function TemplateManagement() {
                               title: template.title || '',
                               description: template.description || '',
                               price: String(template.price ?? ''),
-                              fileUrl: (template as { fileUrl?: string }).fileUrl || ''
+                              fileUrl: (template as { fileUrl?: string }).fileUrl || '',
+                              file: null
                             });
                             setEditErrors({});
                             setShowEditModal(true);
@@ -1296,11 +1327,21 @@ export default function TemplateManagement() {
                 if (Object.keys(errs).length > 0 || !selectedTemplateForEdit) return;
                 try {
                   setIsProcessing(true);
+                  // If a new file is chosen, upload it first to get the new URL
+                  let newFileUrl: string | undefined = undefined;
+                  if (editForm.file) {
+                    try {
+                      newFileUrl = await updateTemplateFile(selectedTemplateForEdit.id, editForm.file);
+                    } catch (fileErr) {
+                      console.error('Error updating template file:', fileErr);
+                      throw fileErr;
+                    }
+                  }
                   await updateTemplate(selectedTemplateForEdit.id, {
                     title: editForm.title.trim(),
                     description: editForm.description.trim(),
                     price: Number(editForm.price),
-                    fileUrl: editForm.fileUrl.trim() || undefined,
+                    fileUrl: (newFileUrl ?? (editForm.fileUrl.trim() || undefined)),
                   });
                   await fetchTemplates();
                   setShowEditModal(false);
@@ -1349,14 +1390,25 @@ export default function TemplateManagement() {
                   {editErrors.price && <p className="mt-1 text-sm text-red-600">{editErrors.price}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
-                  <input
-                    type="text"
-                    value={editForm.fileUrl}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, fileUrl: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="https://..."
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Replace File (optional)</label>
+                  <div className="mt-1 flex justify-between items-center gap-3">
+                    <input
+                      type="file"
+                      accept=".docx,.pdf,.pptx,.xlsx,.doc,.ppt,.xls"
+                      onChange={handleEditFileChange}
+                      disabled={isProcessing}
+                      className="block w-full text-sm text-gray-700"
+                    />
+                  </div>
+                  {editForm.file && (
+                    <p className="mt-2 text-sm text-green-600">Selected: {editForm.file.name}</p>
+                  )}
+                  {!editForm.file && editForm.fileUrl && (
+                    <p className="mt-2 text-xs text-gray-500 break-all">Current: {editForm.fileUrl}</p>
+                  )}
+                  {editErrors.file && (
+                    <p className="mt-1 text-sm text-red-600">{editErrors.file}</p>
+                  )}
                 </div>
               </div>
 
