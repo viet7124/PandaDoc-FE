@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../../contexts/ToastContext';
 import { dispatchRoleChangeEvent } from '../../utils/roleEvents';
 import { setAuthData, type UserData } from '../../utils/authUtils';
+import { getCurrentUser } from '../../pages/Profile/services/authAPI';
 
 export default function OAuth2Redirect() {
   const navigate = useNavigate();
@@ -60,8 +61,12 @@ export default function OAuth2Redirect() {
           return;
         }
 
-        // Handle roles - provide default if not available
-        const userRoles = roles ? JSON.parse(roles) : ['ROLE_USER'];
+        // Handle roles: use roles from params when present; otherwise fetch from API
+        // Avoid blindly defaulting to ROLE_USER which can downgrade a seller on re-login
+        let userRoles: string[] = [];
+        if (roles) {
+          userRoles = JSON.parse(roles) as string[];
+        }
         
         // Create user data with all required fields
         const userData: UserData = {
@@ -71,8 +76,22 @@ export default function OAuth2Redirect() {
           roles: userRoles
         };
         
-        // Store authentication data using utility function (remember by default for OAuth2)
+        // Store initial auth data (may have empty roles). Remember by default for OAuth2
         setAuthData(token, userData, userRoles, true);
+
+        // If roles were not provided in the callback, fetch from backend and update storage
+        if (userRoles.length === 0) {
+          getCurrentUser()
+            .then((profile) => {
+              const mergedRoles: string[] = Array.isArray(profile.roles) ? profile.roles : [];
+              const updatedUser: UserData = { ...userData, roles: mergedRoles };
+              setAuthData(token, updatedUser, mergedRoles, true);
+              dispatchRoleChangeEvent();
+            })
+            .catch((err) => {
+              console.error('Failed to fetch roles after OAuth2 login:', err);
+            });
+        }
 
         // Debug: Log final localStorage state
         console.log('Final localStorage state after OAuth2:', {
