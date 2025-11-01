@@ -35,7 +35,7 @@ export default function ResetPassword() {
       return;
     }
     const pwdCheck = validatePasswordStrength(password);
-    setPasswordError(pwdCheck.valid ? '' : (pwdCheck.error ?? 'Password does not meet requirements.'));
+    setPasswordError(pwdCheck.valid ? '' : (pwdCheck.error ?? 'Password does not meet requirements'));
     setConfirmPasswordError(password === confirmPassword ? '' : 'Passwords do not match');
     if (!pwdCheck.valid || password !== confirmPassword) {
       error('Invalid password', passwordError || confirmPasswordError || pwdCheck.error || 'Please fix the password errors.');
@@ -71,7 +71,7 @@ export default function ResetPassword() {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   const check = validatePasswordStrength(e.target.value);
-                  setPasswordError(check.valid ? '' : (check.error ?? 'Password does not meet requirements.'));
+                  setPasswordError(check.valid ? '' : (check.error ?? 'Password does not meet requirements'));
                   if (confirmPassword) {
                     setConfirmPasswordError(e.target.value === confirmPassword ? '' : 'Passwords do not match');
                   }

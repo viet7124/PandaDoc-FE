@@ -103,9 +103,10 @@ export const hasAnyRole = (allowedRoles: string[]): boolean => {
   return allowedRoles.some(role => roles.includes(role));
 };
 
-// Password policy validation
+// Password policy validation (matches backend requirements)
 export const PASSWORD_MIN_LENGTH = 8;
-export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ !"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).{8,}$/;
+export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+export const ALLOWED_SPECIAL_CHARS = '@$!%*?&';
 
 export interface PasswordValidationResult {
   valid: boolean;
@@ -116,18 +117,25 @@ export const validatePasswordStrength = (password: string): PasswordValidationRe
   if (password.length < PASSWORD_MIN_LENGTH) {
     return { valid: false, error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters long` };
   }
+  
   const hasLowercase = /[a-z]/.test(password);
   const hasUppercase = /[A-Z]/.test(password);
   const hasDigit = /\d/.test(password);
-  const hasSpecial = /[ !"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(password);
+  const hasSpecial = /[@$!%*?&]/.test(password);
+  
+  // Check for invalid characters (only letters, digits, and allowed special chars)
+  const hasInvalidChars = /[^A-Za-z\d@$!%*?&]/.test(password);
+  if (hasInvalidChars) {
+    return { valid: false, error: `Password can only contain letters, numbers and special characters: ${ALLOWED_SPECIAL_CHARS}` };
+  }
 
   if (!hasLowercase || !hasUppercase || !hasDigit || !hasSpecial) {
     const missing: string[] = [];
-    if (!hasUppercase) missing.push('an uppercase letter');
-    if (!hasLowercase) missing.push('a lowercase letter');
-    if (!hasDigit) missing.push('a number');
-    if (!hasSpecial) missing.push('a special character');
-    return { valid: false, error: `Password must include ${missing.join(', ')}` };
+    if (!hasLowercase) missing.push('at least 1 lowercase letter');
+    if (!hasUppercase) missing.push('at least 1 uppercase letter');
+    if (!hasDigit) missing.push('at least 1 number');
+    if (!hasSpecial) missing.push(`at least 1 special character (${ALLOWED_SPECIAL_CHARS})`);
+    return { valid: false, error: `Password must contain ${missing.join(', ')}` };
   }
 
   return { valid: true };
