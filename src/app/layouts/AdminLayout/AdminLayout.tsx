@@ -9,8 +9,7 @@ import {
   LogOut,
   Menu,
   X,
-  User,
-  Bot
+  User
 } from 'lucide-react';
 import { clearAuthData } from "../../utils/authUtils";
 
@@ -31,7 +30,6 @@ export default function AdminLayout() {
     { path: '/admin/advertising', icon: Megaphone, label: 'Advertising' },
     { path: '/admin/suggestions', icon: MessageSquare, label: 'Suggestions' },
     { path: '/admin/revenue', icon: DollarSign, label: 'Revenue' },
-    { path: '/chat', icon: Bot, label: 'AI Chat' },
   ];
 
   return (

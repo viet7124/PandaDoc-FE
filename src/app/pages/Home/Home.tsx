@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { getAuthHeaders, getAuthState } from '../../utils/authUtils';
+import { getAuthHeaders } from '../../utils/authUtils';
 import heroImage from '../../assets/avatar.png';
 
 const url = import.meta.env.VITE_BASE_URL + 'api';
@@ -33,10 +33,6 @@ interface Template {
 export default function Home() {
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, roles } = getAuthState();
-  
-  // Check if user is a regular user or seller (not admin)
-  const showChatButton = isAuthenticated && (roles.includes('ROLE_USER') || roles.includes('ROLE_SELLER'));
 
   useEffect(() => {
     const fetchPopularTemplates = async () => {
@@ -82,7 +78,7 @@ export default function Home() {
                 </p>
               </div>
               
-              {/* CTA Buttons */}
+              {/* CTA Button */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link 
                   to="/templates"
@@ -94,18 +90,6 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
-                {showChatButton && (
-                  <Link 
-                    to="/chat"
-                    className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-500/25 border-2 border-white/20"
-                    aria-label="Try AI Chat Assistant"
-                  >
-                    <svg className="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <span>Try AI Chat</span>
-                  </Link>
-                )}
               </div>
             </div>
 
