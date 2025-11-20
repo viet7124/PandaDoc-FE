@@ -21,7 +21,7 @@ export interface ActionButton {
 }
 
 export interface SendMessageRequest {
-  sessionId: string | null;
+  sessionId: null;
   message: string;
 }
 

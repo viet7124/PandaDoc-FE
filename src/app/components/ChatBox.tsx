@@ -97,14 +97,12 @@ export default function ChatBox() {
 
     try {
       const response = await sendChatMessage({
-        sessionId,
+        sessionId: null,
         message: userMessage
       });
 
-      // Update session ID if new session
-      if (!sessionId) {
-        setSessionId(response.sessionId);
-      }
+      // Update session ID from response
+      setSessionId(response.sessionId);
 
       // Add AI response to UI
       const newMessage: Message = {
@@ -207,7 +205,7 @@ export default function ChatBox() {
   return (
     <div className="flex flex-col h-[600px] md:h-[700px] border rounded-lg shadow-lg bg-white">
       {/* Header */}
-      <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+      <div className="p-4 border-b bg-gradient-to-r from-green-600 to-green-700 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">PandaDocs AI Assistant</h2>
@@ -245,14 +243,14 @@ export default function ChatBox() {
             <div
               className={`max-w-[85%] md:max-w-[75%] rounded-lg p-3 shadow-sm ${
                 msg.role === 'USER'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-white text-gray-800 border border-gray-200'
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
               
               {msg.timestamp && (
-                <p className={`text-xs mt-1 ${msg.role === 'USER' ? 'text-blue-100' : 'text-gray-500'}`}>
+                <p className={`text-xs mt-1 ${msg.role === 'USER' ? 'text-green-100' : 'text-gray-500'}`}>
                   {formatTime(msg.timestamp)}
                 </p>
               )}
@@ -284,7 +282,7 @@ export default function ChatBox() {
                             {template.description}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <p className="text-sm font-bold text-blue-600">
+                            <p className="text-sm font-bold text-green-600">
                               {template.price === 0 ? 'FREE' : `$${template.price.toLocaleString('en-US')}`}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -311,7 +309,7 @@ export default function ChatBox() {
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         btn.type === 'CANCEL'
                           ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-green-600 text-white hover:bg-green-700'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {btn.label}
@@ -372,12 +370,12 @@ export default function ChatBox() {
             placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
             disabled={isLoading || (rateLimitRetryAfter !== null && rateLimitRetryAfter > 0) || !token}
             rows={2}
-            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-none"
+            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 resize-none"
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim() || (rateLimitRetryAfter !== null && rateLimitRetryAfter > 0) || !token}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             Send
           </button>

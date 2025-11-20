@@ -1,6 +1,12 @@
+import { useEffect } from 'react';
 import ChatBox from '../../components/ChatBox';
 
 export default function Chat() {
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-5xl mx-auto px-4">
