@@ -26,6 +26,7 @@ import AboutUs from "../pages/AboutUs/AboutUs";
 import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
 import TermsOfService from "../pages/TermsOfService/TermsOfService";
 import MyLibrary from '../pages/Profile/MyLibrary';
+import Chat from '../pages/Chat';
 
 // Admin Pages
 import UserManagement from "../pages/Admin/UserManagement";
@@ -130,6 +131,11 @@ export default function MainRoutes() {
               <Route path="/library" element={
                 <ProtectedRoute allowedRoles={['ROLE_USER', 'ROLE_SELLER', 'ROLE_ADMIN']}>
                   <MyLibrary />
+                </ProtectedRoute>
+              } />
+              <Route path="/chat" element={
+                <ProtectedRoute allowedRoles={['ROLE_USER', 'ROLE_SELLER', 'ROLE_ADMIN']}>
+                  <Chat />
                 </ProtectedRoute>
               } />
               
