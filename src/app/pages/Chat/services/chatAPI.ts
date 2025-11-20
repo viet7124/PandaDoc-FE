@@ -92,7 +92,10 @@ export const sendChatMessage = async (
       `${url}/chat/message`,
       request,
       {
-        headers
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        }
       }
     );
     return response.data;
@@ -104,6 +107,9 @@ export const sendChatMessage = async (
       }
       if (error.response?.status === 401) {
         throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
+      if (error.response?.status === 481) {
+        throw new Error('Request payload was not received by the server. Please try again.');
       }
       const errorMessage = (error.response?.data as { message?: string })?.message;
       throw new Error(errorMessage || 'Failed to send message');
@@ -226,7 +232,10 @@ export const handlePurchaseAction = async (
       `${url}/chat/purchase-action`,
       request,
       {
-        headers
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        }
       }
     );
     return response.data;
