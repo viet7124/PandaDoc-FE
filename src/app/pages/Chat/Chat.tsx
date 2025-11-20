@@ -7,7 +7,7 @@ export default function Chat() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Chatbox</h1>
           <p className="text-gray-600">
-            Trò chuyện với AI để tìm kiếm template phù hợp với nhu cầu của bạn
+            Chat with AI to find templates that match your needs
           </p>
         </div>
         <ChatBox />

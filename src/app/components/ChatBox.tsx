@@ -107,22 +107,20 @@ export default function ChatBox() {
       }
 
       // Add AI response to UI
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'ASSISTANT',
-          content: response.message,
-          templates: response.templates,
-          actionButtons: response.actionButtons,
-          timestamp: new Date().toISOString()
-        }
-      ]);
+      const newMessage: Message = {
+        role: 'ASSISTANT',
+        content: response.message,
+        templates: response.templates.length > 0 ? response.templates : undefined,
+        actionButtons: response.actionButtons ?? undefined,
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, newMessage]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đã có lỗi xảy ra';
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
       
       // Handle rate limit
-      if (errorMessage.includes('Rate limit') || errorMessage.includes('giới hạn')) {
+      if (errorMessage.includes('Rate limit') || errorMessage.includes('limit')) {
         setRateLimitRetryAfter(3600); // Default 1 hour
       }
       
@@ -155,15 +153,15 @@ export default function ChatBox() {
         // Call add to library API if endpoint provided
         if (response.endpoint) {
           // You can implement the actual API call here
-          toast.success('Thành công', 'Đã thêm template vào library!');
+          toast.success('Success', 'Template added to library!');
         } else {
-          toast.success('Thành công', 'Đã thêm template vào library!');
+          toast.success('Success', 'Template added to library!');
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đã có lỗi xảy ra';
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
-      toast.error('Lỗi', errorMessage);
+      toast.error('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -182,10 +180,10 @@ export default function ChatBox() {
       setMessages([]);
       setSessionId(null);
       localStorage.removeItem('chatSessionId');
-      toast.success('Thành công', 'Đã xóa lịch sử chat');
+      toast.success('Success', 'Chat history cleared');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đã có lỗi xảy ra';
-      toast.error('Lỗi', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      toast.error('Error', errorMessage);
     }
   };
 
@@ -200,7 +198,7 @@ export default function ChatBox() {
     if (!timestamp) return '';
     try {
       const date = new Date(timestamp);
-      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
     }
@@ -212,16 +210,16 @@ export default function ChatBox() {
       <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">AI Trợ lý PandaDocs</h2>
-            <p className="text-sm opacity-90">Tìm kiếm template nhanh chóng</p>
+            <h2 className="text-lg font-semibold">PandaDocs AI Assistant</h2>
+            <p className="text-sm opacity-90">Find templates quickly</p>
           </div>
           {messages.length > 0 && (
             <button
               onClick={handleClearChat}
               className="px-3 py-1 text-sm bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              title="Xóa lịch sử chat"
+              title="Clear chat history"
             >
-              🗑️ Xóa
+              🗑️ Clear
             </button>
           )}
         </div>
@@ -233,8 +231,8 @@ export default function ChatBox() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-gray-500">
               <div className="text-4xl mb-4">🤖</div>
-              <p className="text-lg font-medium">Chào mừng đến với AI Trợ lý!</p>
-              <p className="text-sm mt-2">Hãy hỏi tôi về bất kỳ template nào bạn cần</p>
+              <p className="text-lg font-medium">Welcome to AI Assistant!</p>
+              <p className="text-sm mt-2">Ask me about any template you need</p>
             </div>
           </div>
         )}
@@ -287,12 +285,12 @@ export default function ChatBox() {
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-sm font-bold text-blue-600">
-                              {template.price === 0 ? 'MIỄN PHÍ' : `${template.price.toLocaleString('vi-VN')}đ`}
+                              {template.price === 0 ? 'FREE' : `$${template.price.toLocaleString('en-US')}`}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                               <span>⭐ {template.rating}</span>
                               <span>•</span>
-                              <span>{template.downloads} lượt tải</span>
+                              <span>{template.downloads} downloads</span>
                             </div>
                           </div>
                         </div>
@@ -359,8 +357,8 @@ export default function ChatBox() {
       {/* Rate limit message */}
       {rateLimitRetryAfter && rateLimitRetryAfter > 0 && (
         <div className="px-4 py-2 bg-yellow-50 border-t border-yellow-200 text-yellow-800 text-sm">
-          <p>Bạn đã vượt quá giới hạn tin nhắn.</p>
-          <p className="text-xs mt-1">Thử lại sau: {Math.floor(rateLimitRetryAfter / 60)} phút {rateLimitRetryAfter % 60} giây</p>
+          <p>You have exceeded the message limit.</p>
+          <p className="text-xs mt-1">Try again after: {Math.floor(rateLimitRetryAfter / 60)} minute(s) {rateLimitRetryAfter % 60} second(s)</p>
         </div>
       )}
 
@@ -371,7 +369,7 @@ export default function ChatBox() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
+            placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
             disabled={isLoading || (rateLimitRetryAfter !== null && rateLimitRetryAfter > 0) || !token}
             rows={2}
             className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 resize-none"
@@ -381,7 +379,7 @@ export default function ChatBox() {
             disabled={isLoading || !inputMessage.trim() || (rateLimitRetryAfter !== null && rateLimitRetryAfter > 0) || !token}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            Gửi
+            Send
           </button>
         </div>
       </div>
