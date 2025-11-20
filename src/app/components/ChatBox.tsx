@@ -8,7 +8,7 @@ import {
   type Template,
   type ActionButton
 } from '../pages/Chat/services/chatAPI';
-import { getAuthState } from '../utils/authUtils';
+import { getAuthState, clearAuthData } from '../utils/authUtils';
 import { useToast } from '../contexts/ToastContext';
 
 interface Message {
@@ -116,6 +116,16 @@ export default function ChatBox() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
+      
+      // Handle authentication errors - redirect to login
+      if (errorMessage.includes('JWT token') || errorMessage.includes('invalid') || errorMessage.includes('expired') || errorMessage.includes('authentication')) {
+        clearAuthData();
+        toast.error('Session Expired', 'Please log in again to continue');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
       
       // Handle rate limit
       if (errorMessage.includes('Rate limit') || errorMessage.includes('limit')) {

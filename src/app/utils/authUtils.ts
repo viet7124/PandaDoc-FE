@@ -154,15 +154,26 @@ export const validateToken = (token: string): boolean => {
     }
     
     // Decode payload to check expiration
-    const payload = JSON.parse(atob(parts[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
-    
-    if (payload.exp && payload.exp < currentTime) {
-      console.error('Token has expired');
-      return false;
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      // Only check expiration if exp field exists
+      if (payload.exp) {
+        // Add a 60 second buffer to account for clock skew
+        if (payload.exp < (currentTime - 60)) {
+          console.error('Token has expired');
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (decodeError) {
+      // If we can't decode the payload, it's still a valid JWT format
+      // Let the backend validate it
+      console.warn('Could not decode token payload, but format is valid:', decodeError);
+      return true;
     }
-    
-    return true;
   } catch (error) {
     console.error('Error validating token:', error);
     return false;

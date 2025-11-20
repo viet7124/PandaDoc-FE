@@ -75,11 +75,24 @@ export const sendChatMessage = async (
   request: SendMessageRequest
 ): Promise<ChatMessageResponse> => {
   try {
+    // Get headers first - this may throw if token is invalid
+    let headers;
+    try {
+      headers = getAuthHeaders();
+    } catch (headerError) {
+      // If getAuthHeaders throws, it means token is missing or invalid
+      const errorMsg = headerError instanceof Error ? headerError.message : 'Authentication failed';
+      if (errorMsg.includes('token') || errorMsg.includes('authentication')) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
+      throw headerError;
+    }
+
     const response = await axios.post<ChatMessageResponse>(
       `${url}/chat/message`,
       request,
       {
-        headers: getAuthHeaders()
+        headers
       }
     );
     return response.data;
@@ -90,10 +103,14 @@ export const sendChatMessage = async (
         throw new Error(rateLimitError.message || 'Rate limit exceeded');
       }
       if (error.response?.status === 401) {
-        throw new Error('JWT token không hợp lệ hoặc đã hết hạn');
+        throw new Error('JWT token is invalid or expired. Please log in again.');
       }
       const errorMessage = (error.response?.data as { message?: string })?.message;
       throw new Error(errorMessage || 'Failed to send message');
+    }
+    // Re-throw if it's already our custom error
+    if (error instanceof Error && error.message.includes('JWT token')) {
+      throw error;
     }
     throw new Error('Failed to send message');
   }
@@ -107,17 +124,36 @@ export const getChatSession = async (
   sessionId: string
 ): Promise<ChatSessionResponse> => {
   try {
+    // Get headers first - this may throw if token is invalid
+    let headers;
+    try {
+      headers = getAuthHeaders();
+    } catch (headerError) {
+      const errorMsg = headerError instanceof Error ? headerError.message : 'Authentication failed';
+      if (errorMsg.includes('token') || errorMsg.includes('authentication')) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
+      throw headerError;
+    }
+
     const response = await axios.get<ChatSessionResponse>(
       `${url}/chat/session/${sessionId}`,
       {
-        headers: getAuthHeaders()
+        headers
       }
     );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
       const errorMessage = (error.response?.data as { message?: string })?.message;
       throw new Error(errorMessage || 'Failed to get session');
+    }
+    // Re-throw if it's already our custom error
+    if (error instanceof Error && error.message.includes('JWT token')) {
+      throw error;
     }
     throw new Error('Failed to get session');
   }
@@ -131,17 +167,36 @@ export const clearChatSession = async (
   sessionId: string
 ): Promise<{ message: string }> => {
   try {
+    // Get headers first - this may throw if token is invalid
+    let headers;
+    try {
+      headers = getAuthHeaders();
+    } catch (headerError) {
+      const errorMsg = headerError instanceof Error ? headerError.message : 'Authentication failed';
+      if (errorMsg.includes('token') || errorMsg.includes('authentication')) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
+      throw headerError;
+    }
+
     const response = await axios.delete<{ message: string }>(
       `${url}/chat/session/${sessionId}`,
       {
-        headers: getAuthHeaders()
+        headers
       }
     );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
       const errorMessage = (error.response?.data as { message?: string })?.message;
       throw new Error(errorMessage || 'Failed to clear session');
+    }
+    // Re-throw if it's already our custom error
+    if (error instanceof Error && error.message.includes('JWT token')) {
+      throw error;
     }
     throw new Error('Failed to clear session');
   }
@@ -155,18 +210,37 @@ export const handlePurchaseAction = async (
   request: PurchaseActionRequest
 ): Promise<PurchaseActionResponse> => {
   try {
+    // Get headers first - this may throw if token is invalid
+    let headers;
+    try {
+      headers = getAuthHeaders();
+    } catch (headerError) {
+      const errorMsg = headerError instanceof Error ? headerError.message : 'Authentication failed';
+      if (errorMsg.includes('token') || errorMsg.includes('authentication')) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
+      throw headerError;
+    }
+
     const response = await axios.post<PurchaseActionResponse>(
       `${url}/chat/purchase-action`,
       request,
       {
-        headers: getAuthHeaders()
+        headers
       }
     );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error('JWT token is invalid or expired. Please log in again.');
+      }
       const errorMessage = (error.response?.data as { message?: string })?.message;
       throw new Error(errorMessage || 'Failed to handle action');
+    }
+    // Re-throw if it's already our custom error
+    if (error instanceof Error && error.message.includes('JWT token')) {
+      throw error;
     }
     throw new Error('Failed to handle action');
   }
