@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { getAuthHeaders } from '../../../utils/authUtils';
 
-const url = import.meta.env.VITE_BASE_URL + 'api';
+// Normalize base URL like other API files
+const rawBase: string = import.meta.env.VITE_BASE_URL || '';
+const normalizedBase: string = rawBase ? rawBase.replace(/\/?$/, '/') : '';
+const url = `${normalizedBase}api`;
 
 export interface Template {
   id: number;
@@ -88,13 +91,27 @@ export const sendChatMessage = async (
       throw headerError;
     }
 
+    const endpoint = `${url}/chat/message`;
+    const requestBody = {
+      sessionId: null,
+      message: request.message
+    };
+
+    console.log('📤 Sending chat message:', {
+      url: endpoint,
+      body: requestBody,
+      bodyStringified: JSON.stringify(requestBody),
+      headers: { ...headers, 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+
     const response = await axios.post<ChatMessageResponse>(
-      `${url}/chat/message`,
-      request,
+      endpoint,
+      requestBody,
       {
         headers: {
           ...headers,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       }
     );
