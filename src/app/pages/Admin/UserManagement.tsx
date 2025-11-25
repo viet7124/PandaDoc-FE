@@ -22,8 +22,10 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   // server pagination
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const filterApplied = statusFilter !== 'ALL' || searchTerm.trim().length > 0;
   
   // Modals
   const [showEditModal, setShowEditModal] = useState(false);
@@ -54,6 +56,7 @@ export default function UserManagement() {
       const result = await getUsersPage(page, pageSize);
       setUsers(result.content || []);
       setTotalPages(result.totalPages || 1);
+      setTotalUsers(result.totalElements ?? (result.content?.length ?? 0));
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Error Loading Users', 'Failed to load users');
@@ -192,7 +195,7 @@ export default function UserManagement() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +208,7 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active Users</p>
+              <p className="text-sm text-gray-600 mb-1">Active (page)</p>
               <p className="text-2xl font-bold text-green-600">
                 {users.filter(u => u.status === 'ACTIVE').length}
               </p>
@@ -221,7 +224,7 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Inactive Users</p>
+              <p className="text-sm text-gray-600 mb-1">Inactive (page)</p>
               <p className="text-2xl font-bold text-gray-600">
                 {users.filter(u => u.status === 'INACTIVE').length}
               </p>
@@ -237,7 +240,7 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Admins</p>
+              <p className="text-sm text-gray-600 mb-1">Admins (page)</p>
               <p className="text-2xl font-bold text-red-600">
                 {users.filter(u => u.roles.some(r => r.includes('ADMIN'))).length}
               </p>
@@ -418,11 +421,19 @@ export default function UserManagement() {
             </table>
           )}
         </div>
-        <div className="px-4">
+        <div className="px-4 flex flex-col gap-2">
+          <div className="text-sm text-gray-600">
+            {filteredUsers.length === 0
+              ? 'No users to display'
+              : filterApplied
+                ? `Showing ${filteredUsers.length} result(s) on this page after filters`
+                : `Showing ${page * pageSize + 1}–${page * pageSize + filteredUsers.length} of ${totalUsers} users`}
+          </div>
           <Pagination
             currentPage={page}
             totalPages={totalPages}
             pageSize={pageSize}
+            pageSizeOptions={[20, 50, 100, 200]}
             onPageChange={(p) => setPage(p)}
             onPageSizeChange={(s) => {
               setPageSize(s);

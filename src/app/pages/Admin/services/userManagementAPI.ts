@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { getAuthHeaders } from '../../../utils/authUtils';
 
-const url = import.meta.env.VITE_BASE_URL + 'api';
+const rawBase: string = import.meta.env.VITE_BASE_URL || '';
+const normalizedBase: string = rawBase ? rawBase.replace(/\/?$/, '/') : '';
+const url = `${normalizedBase}api`;
 
 export interface User {
   id: number;
@@ -60,7 +62,7 @@ export const getAllUsers = async (page: number = 0, size: number = 100): Promise
  * GET /api/admin/users (paged)
  * Returns full page info for pagination controls
  */
-export const getUsersPage = async (page: number = 0, size: number = 20): Promise<UsersResponse> => {
+export const getUsersPage = async (page: number = 0, size: number = 50): Promise<UsersResponse> => {
   try {
     const response = await axios.get<UsersResponse>(`${url}/admin/users`, {
       headers: getAuthHeaders(),
