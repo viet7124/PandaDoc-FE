@@ -23,21 +23,16 @@ export default function Footer() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const subject = String(formData.get('subject') || '');
-    const message = String(formData.get('message') || '');
+    const message = String(formData.get('message') || '').trim();
 
-    if (!message.trim()) {
+    if (!message) {
       toast.error('Message required', 'Please enter a message before sending.');
       return;
     }
 
-    const finalMessage = subject.trim()
-      ? `${subject.trim()}\n\n${message.trim()}`
-      : message.trim();
-
     try {
       setIsSubmitting(true);
-      await submitSuggestion(finalMessage);
+      await submitSuggestion(message);
       toast.success('Message sent', 'Thanks for contacting PandaDocs! Our team will follow up soon.');
       form.reset();
       setOpen(false);
@@ -106,20 +101,14 @@ export default function Footer() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                <input name="name" type="text" required placeholder="Enter your name" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
-                <input name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input name="subject" type="text" required placeholder="How can we help?" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea name="message" rows={6} required placeholder="Write your message here..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black min-h-[140px]" />
+                <textarea
+                  name="message"
+                  rows={6}
+                  required
+                  placeholder="Write your message here..."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black min-h-[160px]"
+                />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
