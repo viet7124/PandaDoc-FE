@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { getAuthHeaders } from '../../../utils/authUtils';
 
-const url = import.meta.env.VITE_BASE_URL + 'api';
+const rawBase: string = import.meta.env.VITE_BASE_URL || '';
+const normalizedBase: string = rawBase ? rawBase.replace(/\/?$/, '/') : '';
+const url = `${normalizedBase}api`;
 
 // use shared getAuthHeaders
 
@@ -23,7 +25,8 @@ export const getSuggestions = async (): Promise<Suggestion[]> => {
     const response = await axios.get<Suggestion[]>(`${url}/admin/suggestions`, {
       headers: getAuthHeaders()
     });
-    return response.data || [];
+    const data = response.data || [];
+    return [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (error) {
     console.error('Error fetching suggestions:', error);
     throw error;

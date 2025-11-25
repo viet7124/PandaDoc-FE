@@ -21,7 +21,9 @@ interface Template {
   title: string;
   description: string;
   price: number;
-  fileUrl: string;
+  fileUrl?: string;
+  previewImage?: string;
+  previewImages?: string[];
   category: Category;
   author: Author;
   status?: 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'REJECTED';
@@ -328,28 +330,40 @@ export default function Home() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
                       
                       {/* Template Preview Image */}
-                      {template.images && template.images.length > 0 ? (
-                        <img
-                          src={template.images[0]}
-                          alt={`${template.title} preview`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback to gradient if preview fails to load
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        /* Default fallback when no preview images available */
-                        <div className="absolute inset-4 bg-white rounded-lg shadow-inner p-8 flex items-center justify-center">
-                          <div className="text-center space-y-4">
-                            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                            <div className="text-lg font-bold text-gray-400">No Preview</div>
-                            <div className="text-sm text-gray-500">{template.title}</div>
+                      {(() => {
+                        const previewSrc =
+                          template.previewImages?.[0] ??
+                          template.previewImage ??
+                          template.images?.[0] ??
+                          template.fileUrl ??
+                          null;
+
+                        if (previewSrc) {
+                          return (
+                            <img
+                              src={previewSrc}
+                              alt={`${template.title} preview`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          );
+                        }
+
+                        return (
+                          <div className="absolute inset-4 bg-white rounded-lg shadow-inner p-8 flex items-center justify-center">
+                            <div className="text-center space-y-4">
+                              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                              <div className="text-lg font-bold text-gray-400">No Preview</div>
+                              <div className="text-sm text-gray-500">{template.title}</div>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                       
                       {template.price > 0 && (
                         <div className="absolute top-4 left-4 bg-yellow-400/90 backdrop-blur-sm px-3 py-1 rounded-full">

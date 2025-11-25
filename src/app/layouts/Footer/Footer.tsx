@@ -1,38 +1,52 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useToast } from '../../contexts/ToastContext';
+import { getAuthState } from '../../utils/authUtils';
+import { submitSuggestion } from '../../services/supportAPI';
 
 export default function Footer() {
   const [open, setOpen] = useState(false);
-  const { error, success } = useToast();
-  const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
 
   const handleOpen = () => {
-    if (!contactEmail) {
-      error('Contact unavailable', 'Contact email is not configured. Please set VITE_CONTACT_EMAIL.');
+    const { isAuthenticated } = getAuthState();
+    if (!isAuthenticated) {
+      toast.error('Sign in required', 'Please sign in to contact PandaDocs support.');
       return;
     }
     setOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
+    const form = e.currentTarget;
     const formData = new FormData(form);
-    const name = String(formData.get('name') || '');
-    const emailAddr = String(formData.get('email') || '');
+
     const subject = String(formData.get('subject') || '');
     const message = String(formData.get('message') || '');
 
-    if (!contactEmail) {
-      error('Contact unavailable', 'Contact email is not configured.');
+    if (!message.trim()) {
+      toast.error('Message required', 'Please enter a message before sending.');
       return;
     }
 
-    const mailto = `mailto:${encodeURIComponent(contactEmail)}?subject=${encodeURIComponent('[Contact] ' + subject)}&body=${encodeURIComponent(`From: ${name} <${emailAddr}>\n\n${message}`)}`;
-    window.location.href = mailto;
-    success('Opening email app', 'Your default mail app will compose this message.');
-    setOpen(false);
+    const finalMessage = subject.trim()
+      ? `${subject.trim()}\n\n${message.trim()}`
+      : message.trim();
+
+    try {
+      setIsSubmitting(true);
+      await submitSuggestion(finalMessage);
+      toast.success('Message sent', 'Thanks for contacting PandaDocs! Our team will follow up soon.');
+      form.reset();
+      setOpen(false);
+    } catch (err) {
+      console.error('Error submitting support request:', err);
+      toast.error('Submission failed', 'Unable to send your message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,23 +107,25 @@ export default function Footer() {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                <input name="name" type="text" required placeholder="Enter your name" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
+                <input name="name" type="text" required placeholder="Enter your name" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
-                <input name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
+                <input name="email" type="email" required placeholder="name@example.com" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input name="subject" type="text" required placeholder="How can we help?" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400" />
+                <input name="subject" type="text" required placeholder="How can we help?" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea name="message" rows={6} required placeholder="Write your message here..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-400 min-h-[140px]" />
+                <textarea name="message" rows={6} required placeholder="Write your message here..." className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 placeholder-gray-500 text-black min-h-[140px]" />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">Send</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isSubmitting ? 'Sending...' : 'Send'}
+                </button>
               </div>
             </form>
           </div>
