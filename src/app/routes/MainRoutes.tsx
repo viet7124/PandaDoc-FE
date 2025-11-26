@@ -26,6 +26,7 @@ import AboutUs from "../pages/AboutUs/AboutUs";
 import PrivacyPolicy from "../pages/PrivacyPolicy/PrivacyPolicy";
 import TermsOfService from "../pages/TermsOfService/TermsOfService";
 import MyLibrary from '../pages/Profile/MyLibrary';
+import FloatingAssistant from "../components/FloatingAssistant";
 
 // Admin Pages
 import UserManagement from "../pages/Admin/UserManagement";
@@ -81,6 +82,7 @@ export default function MainRoutes() {
         <Route path="/*" element={
           <>
             <Header />
+            <FloatingAssistant />
             <Routes>
               <Route path="/home" element={<Home />} />
               <Route path="/templates" element={<TemplatePage />} />
