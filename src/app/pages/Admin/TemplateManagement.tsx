@@ -130,7 +130,7 @@ export default function TemplateManagement() {
   const fetchTemplates = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getAllTemplates(statusFilter === 'ALL' ? undefined : statusFilter);
+      const response = await getAllTemplates(statusFilter === 'ALL' ? undefined : statusFilter, 0, 100);
       // Note: Backend may not be returning status field consistently
       // Templates without status will show as "Needs Review" and can be approved
       console.log('Templates fetched:', response.content.map(t => ({ 

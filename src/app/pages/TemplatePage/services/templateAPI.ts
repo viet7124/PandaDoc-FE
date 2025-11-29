@@ -47,9 +47,9 @@ interface TemplatesResponse {
   first: boolean;
 }
 
-export const getTemplates = async (): Promise<TemplatesResponse> => {
+export const getTemplates = async (page: number = 0, size: number = 100): Promise<TemplatesResponse> => {
   try {
-    const fullUrl = `${url}/templates`;
+    const fullUrl = `${url}/templates?page=${page}&size=${size}`;
     console.log('GET Templates URL:', fullUrl);
     
     const response = await axios.get<TemplatesResponse>(fullUrl, {

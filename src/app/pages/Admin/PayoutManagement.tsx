@@ -98,7 +98,7 @@ export default function PayoutManagement() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await getAllTemplates();
+      const response = await getAllTemplates(undefined, 0, 100);
       console.log('🔍 All templates fetched:', response.content);
       console.log('🔍 Template statuses:', response.content.map(t => ({ id: t.id, title: t.title, status: t.status })));
       

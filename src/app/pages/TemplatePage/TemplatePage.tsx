@@ -67,7 +67,7 @@ export default function TemplatePage() {
         console.log('Starting to fetch data...');
         
         const [templatesData, categoriesData] = await Promise.all([
-          getTemplates(),
+          getTemplates(0, 100),
           getCategories()
         ]);
         
