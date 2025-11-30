@@ -149,6 +149,17 @@ function FeedbackTab() {
   );
 }
 
+// Helper function to clean markdown formatting from message
+const cleanMessage = (text: string): string => {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold**
+    .replace(/\*(.*?)\*/g, '$1') // Remove *italic*
+    .replace(/`(.*?)`/g, '$1') // Remove `code`
+    .replace(/#{1,6}\s/g, '') // Remove markdown headers
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove markdown links, keep text
+    .trim();
+};
+
 function AiChatTab() {
   const toast = useToast();
   const { isAuthenticated } = getAuthState();
@@ -193,7 +204,7 @@ function AiChatTab() {
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         role: 'ASSISTANT',
-        content: response.message,
+        content: cleanMessage(response.message),
         templates: response.templates,
         actionButtons: response.actionButtons,
         createdAt: new Date().toISOString(),
@@ -225,15 +236,30 @@ function AiChatTab() {
         {templates.slice(0, 2).map((tpl) => (
           <div
             key={tpl.id}
-            className="border border-gray-200 rounded-lg p-2 bg-gray-50 text-xs space-y-1"
+            className="border border-emerald-200 rounded-lg p-3 bg-emerald-50/50 hover:bg-emerald-50 transition-colors text-xs space-y-1.5"
           >
             <div className="font-semibold text-gray-900 line-clamp-1">{tpl.title}</div>
-            <div className="text-gray-600 line-clamp-2">{tpl.description}</div>
-            {typeof tpl.price === 'number' && (
-              <div className="text-xs font-medium text-emerald-600">
-                {tpl.price === 0 ? 'Free' : `Price: ${tpl.price.toLocaleString('vi-VN')}đ`}
+            {tpl.description && (
+              <div className="text-gray-600 line-clamp-2 text-xs leading-relaxed">
+                {tpl.description}
               </div>
             )}
+            <div className="flex items-center justify-between pt-1">
+              {typeof tpl.price === 'number' && (
+                <div className="text-xs font-semibold text-emerald-700">
+                  {tpl.price === 0 ? (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded">Free</span>
+                  ) : (
+                    <span>{tpl.price.toLocaleString('vi-VN')} VNĐ</span>
+                  )}
+                </div>
+              )}
+              {tpl.category && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  {tpl.category}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -264,7 +290,7 @@ function AiChatTab() {
                   : 'bg-gray-100 text-gray-800 border border-gray-200'
               }`}
             >
-              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+              <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
               {renderTemplates(msg.templates)}
             </div>
           </div>
