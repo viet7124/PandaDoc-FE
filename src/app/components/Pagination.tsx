@@ -23,7 +23,10 @@ export default function Pagination({
     onPageChange(page);
   };
 
-  if (totalPages <= 1) return null;
+  // Hide pagination only when there are no pages at all.
+  // When there is exactly 1 page, we still show the controls (all disabled)
+  // so the user can always see the page size selector.
+  if (totalPages <= 0) return null;
 
   return (
     <div className="flex items-center justify-between py-3">
