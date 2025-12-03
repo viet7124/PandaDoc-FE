@@ -78,7 +78,19 @@ export default function TemplatePage() {
         if (templatesData && templatesData.content && Array.isArray(templatesData.content)) {
           console.log('Setting templates:', templatesData.content.length, 'items');
           setTemplates(templatesData.content);
-          setTotalElements(templatesData.totalElements || 0);
+
+          // Prefer backend totalElements when provided, otherwise fall back to the
+          // number of published templates we actually have locally so the
+          // "Filtered from X total templates" text is always accurate.
+          const publishedCount = templatesData.content.filter(
+            (template: Template) => template.status === 'PUBLISHED'
+          ).length;
+
+          const backendTotal = typeof templatesData.totalElements === 'number'
+            ? templatesData.totalElements
+            : undefined;
+
+          setTotalElements(backendTotal ?? publishedCount);
         } else {
           console.warn('Templates data is not valid:', templatesData);
         }
