@@ -22,7 +22,8 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   // server pagination
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(50);
+  // Default to 25 users per page for better readability
+  const [pageSize, setPageSize] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
   const filterApplied = statusFilter !== 'ALL' || searchTerm.trim().length > 0;
@@ -433,7 +434,7 @@ export default function UserManagement() {
             currentPage={page}
             totalPages={totalPages}
             pageSize={pageSize}
-            pageSizeOptions={[20, 50, 100, 200]}
+            pageSizeOptions={[25, 50, 100, 200]}
             onPageChange={(p) => setPage(p)}
             onPageSizeChange={(s) => {
               setPageSize(s);

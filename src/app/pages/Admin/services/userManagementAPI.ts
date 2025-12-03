@@ -40,7 +40,7 @@ export interface UsersResponse {
  * GET /api/admin/users
  * Get list of all users (Admin only)
  */
-export const getAllUsers = async (page: number = 0, size: number = 100): Promise<User[]> => {
+export const getAllUsers = async (page: number = 0, size: number = 1000): Promise<User[]> => {
   try {
     console.log('Fetching all users from:', `${url}/admin/users?page=${page}&size=${size}`);
     
@@ -61,8 +61,9 @@ export const getAllUsers = async (page: number = 0, size: number = 100): Promise
 /**
  * GET /api/admin/users (paged)
  * Returns full page info for pagination controls
+ * Default page size is 25 users per page to keep the admin list readable.
  */
-export const getUsersPage = async (page: number = 0, size: number = 50): Promise<UsersResponse> => {
+export const getUsersPage = async (page: number = 0, size: number = 25): Promise<UsersResponse> => {
   try {
     const response = await axios.get<UsersResponse>(`${url}/admin/users`, {
       headers: getAuthHeaders(),
