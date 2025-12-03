@@ -22,16 +22,26 @@ export interface UserActivity {
   timestamp: string;
 }
 
-export interface UsersResponse {
-  content: User[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
+// Raw response shape from backend
+interface UsersApiPageInfo {
+  size: number;
+  number: number;
   totalElements: number;
   totalPages: number;
-  last: boolean;
-  first: boolean;
+}
+
+interface UsersApiResponse {
+  content: User[];
+  page: UsersApiPageInfo;
+}
+
+// Normalized response used by the frontend for pagination
+export interface UsersResponse {
+  content: User[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 // use shared getAuthHeaders to support session/local tokens
@@ -44,7 +54,7 @@ export const getAllUsers = async (page: number = 0, size: number = 25): Promise<
   try {
     console.log('Fetching all users from:', `${url}/admin/users?page=${page}&size=${size}`);
     
-    const response = await axios.get<UsersResponse>(`${url}/admin/users`, {
+    const response = await axios.get<UsersApiResponse>(`${url}/admin/users`, {
       headers: getAuthHeaders(),
       params: { page, size }
     });
@@ -65,11 +75,20 @@ export const getAllUsers = async (page: number = 0, size: number = 25): Promise<
  */
 export const getUsersPage = async (page: number = 0, size: number = 25): Promise<UsersResponse> => {
   try {
-    const response = await axios.get<UsersResponse>(`${url}/admin/users`, {
+    const response = await axios.get<UsersApiResponse>(`${url}/admin/users`, {
       headers: getAuthHeaders(),
       params: { page, size }
     });
-    return response.data;
+
+    const apiData = response.data;
+
+    return {
+      content: apiData.content,
+      pageNumber: apiData.page.number,
+      pageSize: apiData.page.size,
+      totalElements: apiData.page.totalElements,
+      totalPages: apiData.page.totalPages
+    };
   } catch (error) {
     console.error('Error fetching users page:', error);
     throw error;
