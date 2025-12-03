@@ -40,7 +40,7 @@ export interface UsersResponse {
  * GET /api/admin/users
  * Get list of all users (Admin only)
  */
-export const getAllUsers = async (page: number = 0, size: number = 1000): Promise<User[]> => {
+export const getAllUsers = async (page: number = 0, size: number = 25): Promise<User[]> => {
   try {
     console.log('Fetching all users from:', `${url}/admin/users?page=${page}&size=${size}`);
     
