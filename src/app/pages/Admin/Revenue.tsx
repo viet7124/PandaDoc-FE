@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../../contexts/ToastContext';
 import { getRevenueData } from './services/revenueAPI';
-import type { RevenueData } from './services/revenueAPI';
+import type { RevenueData, RevenuePeriod } from './services/revenueAPI';
 
 export default function Revenue() {
   const toast = useToast();
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<RevenuePeriod>('month');
 
   useEffect(() => {
-    fetchRevenueData();
-  }, []);
+    fetchRevenueData(period);
+  }, [period]);
 
-  const fetchRevenueData = async () => {
+  const fetchRevenueData = async (selectedPeriod: RevenuePeriod) => {
     try {
       setLoading(true);
-      const data = await getRevenueData();
+      const data = await getRevenueData(selectedPeriod);
       console.log('Revenue API Response:', data);
       console.log('Total Revenue:', data.totalRevenue);
       setRevenueData(data);
@@ -48,26 +49,46 @@ export default function Revenue() {
     );
   }
 
-  const getPeriodLabel = (period: string): string => {
-    const labels: Record<string, string> = {
-      'day': 'Today',
-      'week': 'This Week',
-      'month': 'This Month',
-      'year': 'This Year'
+  const getPeriodLabel = (value: RevenuePeriod): string => {
+    const labels: Record<RevenuePeriod, string> = {
+      week: 'This Week',
+      month: 'This Month',
+      quarter: 'This Quarter',
+      year: 'This Year'
     };
-    return labels[period] || period;
+    return labels[value];
   };
 
   // Safely format revenue with default value
   const formattedRevenue = (revenueData.totalRevenue ?? 0).toLocaleString('en-US');
-  const periodLabel = revenueData.period || 'month';
+  const periodLabel: RevenuePeriod = revenueData.period || 'month';
 
   return (
     <div className="p-6 ml-10 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Revenue</h1>
-          <p className="text-gray-600">Track income and revenue performance of the website</p>
+        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Revenue</h1>
+            <p className="text-gray-600">Track income and revenue performance of the website</p>
+          </div>
+
+          {/* Period Selector */}
+          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+            {(['week', 'month', 'quarter', 'year'] as RevenuePeriod[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setPeriod(option)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md capitalize transition-colors ${
+                  period === option
+                    ? 'bg-green-600 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Revenue Card */}
