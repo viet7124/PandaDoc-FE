@@ -5,6 +5,7 @@ import {
   deleteUser, 
   updateUserStatus,
   getUserActivity,
+  getAllUsers,
   type User,
   type UserActivity
 } from './services/userManagementAPI';
@@ -26,6 +27,10 @@ export default function UserManagement() {
   const [pageSize, setPageSize] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalActive, setTotalActive] = useState(0);
+  const [totalInactive, setTotalInactive] = useState(0);
+  const [totalUnverified, setTotalUnverified] = useState(0);
+  const [totalAdmins, setTotalAdmins] = useState(0);
   const filterApplied = statusFilter !== 'ALL' || searchTerm.trim().length > 0;
   
   // Modals
@@ -47,6 +52,11 @@ export default function UserManagement() {
     fetchUsers();
   }, [page, pageSize]);
 
+  // Fetch aggregate counts once (or when needed)
+  useEffect(() => {
+    fetchUserSummary();
+  }, []);
+
   useEffect(() => {
     filterUsers();
   }, [users, searchTerm, statusFilter]);
@@ -63,6 +73,20 @@ export default function UserManagement() {
       toast.error('Error Loading Users', 'Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserSummary = async () => {
+    try {
+      const allUsers = await getAllUsers(0, 1000);
+      setTotalUsers(allUsers.length);
+      setTotalActive(allUsers.filter((u) => u.status === 'ACTIVE').length);
+      setTotalInactive(allUsers.filter((u) => u.status === 'INACTIVE').length);
+      setTotalUnverified(allUsers.filter((u) => u.status === 'UNVERIFIED').length);
+      setTotalAdmins(allUsers.filter((u) => u.roles.some((r) => r.includes('ADMIN'))).length);
+    } catch (error) {
+      console.error('Error fetching user summary:', error);
+      // Keep existing counts if summary fails
     }
   };
 
@@ -191,7 +215,7 @@ export default function UserManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -209,9 +233,9 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active (page)</p>
+              <p className="text-sm text-gray-600 mb-1">Active (total)</p>
               <p className="text-2xl font-bold text-green-600">
-                {users.filter(u => u.status === 'ACTIVE').length}
+                {totalActive}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -225,9 +249,9 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Inactive (page)</p>
+              <p className="text-sm text-gray-600 mb-1">Inactive (total)</p>
               <p className="text-2xl font-bold text-gray-600">
-                {users.filter(u => u.status === 'INACTIVE').length}
+                {totalInactive}
               </p>
             </div>
             <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -241,9 +265,25 @@ export default function UserManagement() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Admins (page)</p>
+              <p className="text-sm text-gray-600 mb-1">Unverified (total)</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {totalUnverified}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.5 20h13a1.5 1.5 0 001.342-2.164l-6.5-13a1.5 1.5 0 00-2.684 0l-6.5 13A1.5 1.5 0 005.5 20z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Admins (total)</p>
               <p className="text-2xl font-bold text-red-600">
-                {users.filter(u => u.roles.some(r => r.includes('ADMIN'))).length}
+                {totalAdmins}
               </p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
