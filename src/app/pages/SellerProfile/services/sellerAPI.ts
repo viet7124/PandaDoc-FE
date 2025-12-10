@@ -337,19 +337,30 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
     
     console.log('🔍 Fetching templates for user:', userId);
     
-    // Fetch all templates - backend should return only user's templates when authenticated
+    if (!userId) {
+      console.error('❌ No user ID found in storage');
+      return [];
+    }
+    
+    // Fetch all templates with large page size to get all templates
     const response = await axios.get(`${API_URL}/templates`, {
       headers: {
         ...getAuthHeaders(),
         'ngrok-skip-browser-warning': 'true'
       },
       params: {
-        // Add any query parameters if backend supports filtering by author
-        // For example: authorId: userId
+        page: 0,
+        size: 1000 // Fetch large number to get all templates
       }
     });
     
     console.log('📊 Templates API response:', response.data);
+    console.log('📊 Response structure:', {
+      isArray: Array.isArray(response.data),
+      hasContent: !!(response.data?.content),
+      contentLength: response.data?.content?.length,
+      totalElements: response.data?.page?.totalElements
+    });
     
     let allTemplates: RawSellerTemplate[] = [];
     
@@ -359,10 +370,13 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
     } else if (response.data && Array.isArray(response.data.content)) {
       // Paginated response
       allTemplates = response.data.content;
+      console.log(`📄 Paginated response: ${allTemplates.length} templates in this page, total: ${response.data.page?.totalElements || 'unknown'}`);
     } else {
       console.warn('⚠️ Unexpected response format:', response.data);
       return [];
     }
+    
+    console.log(`📦 Total templates fetched: ${allTemplates.length}`);
     
     // Helper function to transform raw template to processed template
     const transformTemplate = (template: RawSellerTemplate): SellerTemplate => {
@@ -405,13 +419,32 @@ export const getSellerTemplates = async (): Promise<SellerTemplate[]> => {
           return false;
         }
         
-        // Check if template belongs to current user
-        return template.author?.id === userId || template.authorId === userId || template.userId === userId;
+        // Get template author info
+        const authorId = template.author?.id;
+        const templateAuthorId = template.authorId;
+        const templateUserId = template.userId;
+        
+        // Convert to numbers for comparison (handle both string and number IDs)
+        const userIdNum = Number(userId);
+        const authorIdNum = authorId ? Number(authorId) : null;
+        const templateAuthorIdNum = templateAuthorId ? Number(templateAuthorId) : null;
+        const templateUserIdNum = templateUserId ? Number(templateUserId) : null;
+        
+        // Check if template belongs to current user (compare both as numbers and original values)
+        const belongsToUser = 
+          (authorIdNum !== null && authorIdNum === userIdNum) ||
+          (templateAuthorIdNum !== null && templateAuthorIdNum === userIdNum) ||
+          (templateUserIdNum !== null && templateUserIdNum === userIdNum) ||
+          authorId === userId ||
+          templateAuthorId === userId ||
+          templateUserId === userId;
+        
+        return belongsToUser;
       })
       .map(transformTemplate);
     
     console.log('✅ User templates found:', userTemplates.length, 'out of', allTemplates.length);
-    console.log('✅ Valid templates:', userTemplates.map(t => ({ id: t.id, name: t.name || 'Untitled' })));
+    console.log('✅ Valid templates:', userTemplates.map(t => ({ id: t.id, name: t.name || 'Untitled', status: t.status })));
     
     return userTemplates;
   } catch (error) {
