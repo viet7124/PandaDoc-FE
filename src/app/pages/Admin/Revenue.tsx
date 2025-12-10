@@ -37,6 +37,15 @@ export default function Revenue() {
     void fetchRevenueData(period);
   }, [period, fetchRevenueData]);
 
+  const sortedBuyers = useMemo(
+    () =>
+      [...buyers].sort(
+        (a, b) =>
+          b.purchasedCount - a.purchasedCount || a.username.localeCompare(b.username)
+      ),
+    [buyers]
+  );
+
   if (loading) {
     return (
       <div className="p-6 ml-10 bg-gray-50 min-h-screen flex items-center justify-center">
@@ -72,12 +81,6 @@ export default function Revenue() {
   const formattedRevenue = (revenueData.totalRevenue ?? 0).toLocaleString("en-US");
   const totalBuyers = dashboardData?.totalBuyers ?? 0;
   const periodLabel: RevenuePeriod = revenueData.period || "month";
-
-  const sortedBuyers = useMemo(
-    () =>
-      [...buyers].sort((a, b) => b.purchasedCount - a.purchasedCount || a.username.localeCompare(b.username)),
-    [buyers]
-  );
 
   return (
     <div className="p-6 ml-10 bg-gray-50 min-h-screen">
