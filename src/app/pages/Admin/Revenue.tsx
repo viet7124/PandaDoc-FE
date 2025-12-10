@@ -31,11 +31,13 @@ export default function Revenue() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     void fetchRevenueData(period);
-  }, [period, fetchRevenueData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period]);
 
   const sortedBuyers = useMemo(
     () =>
