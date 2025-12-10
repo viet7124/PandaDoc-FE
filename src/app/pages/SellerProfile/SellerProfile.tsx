@@ -432,7 +432,20 @@ export default function SellerProfile() {
     }
     const templateName = template?.name || '';
     const rawStatus = (template?.status || '').toString().toLowerCase();
-    const mappedStatus = rawStatus === 'active' || rawStatus === 'published' ? 'approved' : rawStatus;
+    
+    // Map backend uppercase statuses (PENDING_REVIEW, APPROVED, PUBLISHED, REJECTED) to filter values
+    let mappedStatus: string;
+    if (rawStatus === 'pending_review' || rawStatus === 'pending') {
+      mappedStatus = 'pending';
+    } else if (rawStatus === 'approved' || rawStatus === 'published' || rawStatus === 'active') {
+      mappedStatus = 'approved';
+    } else if (rawStatus === 'rejected') {
+      mappedStatus = 'rejected';
+    } else {
+      // Default to pending for unknown statuses
+      mappedStatus = 'pending';
+    }
+    
     const matchesSearch = templateName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesAllowed = ['pending', 'rejected', 'approved'].includes(mappedStatus);
     const matchesFilter = filterStatus === 'all' || mappedStatus === filterStatus;
@@ -688,16 +701,30 @@ export default function SellerProfile() {
                     <div className="absolute top-3 right-3">
                       {(() => {
                         const rawStatus = (template.status || '').toString().toLowerCase();
-                        const mappedStatus = rawStatus === 'active' || rawStatus === 'published' ? 'approved' : rawStatus;
+                        // Map backend statuses to display values
+                        let mappedStatus: string;
+                        let displayLabel: string;
+                        if (rawStatus === 'pending_review' || rawStatus === 'pending') {
+                          mappedStatus = 'pending';
+                          displayLabel = 'PENDING';
+                        } else if (rawStatus === 'approved' || rawStatus === 'published' || rawStatus === 'active') {
+                          mappedStatus = 'approved';
+                          displayLabel = 'APPROVED';
+                        } else if (rawStatus === 'rejected') {
+                          mappedStatus = 'rejected';
+                          displayLabel = 'REJECTED';
+                        } else {
+                          mappedStatus = rawStatus;
+                          displayLabel = rawStatus.toUpperCase();
+                        }
                         const badgeClass = mappedStatus === 'approved'
                           ? 'bg-emerald-100 text-emerald-700'
                           : mappedStatus === 'pending'
                             ? 'bg-yellow-100 text-yellow-700'
                             : 'bg-red-100 text-red-700';
-                        const label = mappedStatus.toUpperCase();
                         return (
                           <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${badgeClass}`}>
-                            {label}
+                            {displayLabel}
                           </span>
                         );
                       })()}
