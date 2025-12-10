@@ -1,31 +1,113 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../contexts/ToastContext';
-import { getRevenueData } from './services/revenueAPI';
-import type { RevenueData, RevenuePeriod } from './services/revenueAPI';
+import { getAdminOrders, type AdminOrder, type RevenuePeriod } from './services/revenueAPI';
+
+interface TransactionRow {
+  orderId: number;
+  templateId: number;
+  templateTitle: string;
+  price: number;
+  createdAt: string;
+  status: string;
+  userId: number;
+}
 
 export default function Revenue() {
   const toast = useToast();
-  const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<RevenuePeriod>('month');
 
   useEffect(() => {
-    fetchRevenueData(period);
-  }, [period]);
+    void fetchOrders();
+  }, []);
 
-  const fetchRevenueData = async (selectedPeriod: RevenuePeriod) => {
+  const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await getRevenueData(selectedPeriod);
-      console.log('Revenue API Response:', data);
-      console.log('Total Revenue:', data.totalRevenue);
-      setRevenueData(data);
+      const data = await getAdminOrders();
+      setOrders(data);
     } catch (error) {
       console.error('Error fetching revenue data:', error);
       toast.error('Error Loading Revenue', 'Failed to load revenue data');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPeriodLabel = (value: RevenuePeriod): string => {
+    const labels: Record<RevenuePeriod, string> = {
+      week: 'This Week',
+      month: 'This Month',
+      quarter: 'This Quarter',
+      year: 'This Year'
+    };
+    return labels[value];
+  };
+
+  const getPeriodStartDate = (value: RevenuePeriod): Date => {
+    const now = new Date();
+    switch (value) {
+      case 'week': {
+        const start = new Date(now);
+        start.setDate(now.getDate() - 7);
+        return start;
+      }
+      case 'month':
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+      case 'quarter': {
+        const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+        return new Date(now.getFullYear(), quarterStartMonth, 1);
+      }
+      case 'year':
+      default:
+        return new Date(now.getFullYear(), 0, 1);
+    }
+  };
+
+  const filteredOrders = useMemo(() => {
+    const startDate = getPeriodStartDate(period);
+    return orders.filter((order) => {
+      const createdAt = new Date(order.createdAt);
+      if (Number.isNaN(createdAt.getTime())) {
+        return false;
+      }
+      return createdAt >= startDate;
+    });
+  }, [orders, period]);
+
+  const transactions = useMemo<TransactionRow[]>(() => {
+    return filteredOrders
+      .flatMap((order) =>
+        order.orderItems.map((item) => ({
+          orderId: order.id,
+          templateId: item.templateId,
+          templateTitle: item.templateTitle,
+          price: Number.isFinite(item.price) ? item.price : 0,
+          createdAt: order.createdAt,
+          status: order.status,
+          userId: order.userId
+        }))
+      )
+      .sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+  }, [filteredOrders]);
+
+  const totalRevenue = useMemo(
+    () => transactions.reduce((sum, transaction) => sum + transaction.price, 0),
+    [transactions]
+  );
+
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat('vi-VN').format(value);
+
+  const formatDate = (value: string): string => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '-';
+    }
+    return parsed.toLocaleString('vi-VN');
   };
 
   if (loading) {
@@ -39,29 +121,7 @@ export default function Revenue() {
     );
   }
 
-  if (!revenueData) {
-    return (
-      <div className="p-6 ml-10 bg-gray-50 min-h-screen">
-        <div className="text-center py-12">
-          <p className="text-gray-600">Failed to load revenue data</p>
-        </div>
-      </div>
-    );
-  }
-
-  const getPeriodLabel = (value: RevenuePeriod): string => {
-    const labels: Record<RevenuePeriod, string> = {
-      week: 'This Week',
-      month: 'This Month',
-      quarter: 'This Quarter',
-      year: 'This Year'
-    };
-    return labels[value];
-  };
-
-  // Safely format revenue with default value
-  const formattedRevenue = (revenueData.totalRevenue ?? 0).toLocaleString('en-US');
-  const periodLabel: RevenuePeriod = revenueData.period || 'month';
+  const periodLabel: RevenuePeriod = period || 'month';
 
   return (
     <div className="p-6 ml-10 bg-gray-50 min-h-screen">
@@ -105,7 +165,7 @@ export default function Revenue() {
                   Total Revenue
                 </h3>
                 <p className="text-4xl font-bold text-gray-900 mt-1">
-                  {formattedRevenue} VND
+                  {formatCurrency(totalRevenue)} VND
                 </p>
               </div>
             </div>
@@ -131,26 +191,14 @@ export default function Revenue() {
               </div>
               
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Last Updated</p>
-                  <p className="text-sm font-semibold text-gray-900">{new Date().toLocaleDateString('en-US')}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Status</p>
-                  <p className="text-sm font-semibold text-green-600">Active</p>
+                  <p className="text-xs text-gray-500">Transactions</p>
+                  <p className="text-sm font-semibold text-gray-900">{transactions.length}</p>
                 </div>
               </div>
             </div>
@@ -166,11 +214,82 @@ export default function Revenue() {
             <div>
               <p className="text-sm font-medium text-blue-900">Revenue Information</p>
               <p className="text-sm text-blue-700 mt-1">
-                Data shows total revenue for the period <span className="font-semibold">{getPeriodLabel(periodLabel)}</span>. 
-                Refresh the page to update with the latest data.
+                Data shows total revenue and transaction history for <span className="font-semibold">{getPeriodLabel(periodLabel)}</span>.
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Transaction history by template</h2>
+              <p className="text-sm text-gray-600">Showing orders within the selected period.</p>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Orders</p>
+                <p className="text-lg font-semibold text-gray-900">{filteredOrders.length}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Templates sold</p>
+                <p className="text-lg font-semibold text-gray-900">{transactions.length}</p>
+              </div>
+            </div>
+          </div>
+
+          {transactions.length === 0 ? (
+            <div className="p-6 text-sm text-gray-600">
+              No transactions found for {getPeriodLabel(periodLabel)}.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3 text-left">Template</th>
+                    <th className="px-6 py-3 text-left">Order</th>
+                    <th className="px-6 py-3 text-left">Buyer</th>
+                    <th className="px-6 py-3 text-left">Price (VND)</th>
+                    <th className="px-6 py-3 text-left">Status</th>
+                    <th className="px-6 py-3 text-left">Created At</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {transactions.map((transaction) => (
+                    <tr key={`${transaction.orderId}-${transaction.templateId}`} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-gray-900">{transaction.templateTitle}</p>
+                        <p className="text-xs text-gray-500">Template ID: {transaction.templateId}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-900 font-medium">#{transaction.orderId}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-gray-900 font-medium">User ID: {transaction.userId}</p>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-semibold">
+                        {formatCurrency(transaction.price)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            transaction.status === 'COMPLETED'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {transaction.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">{formatDate(transaction.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
