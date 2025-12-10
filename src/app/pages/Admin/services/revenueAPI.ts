@@ -14,6 +14,14 @@ export interface RevenueData {
   totalRevenue: number;
 }
 
+export interface Buyer {
+  userId: number;
+  username: string;
+  email: string;
+  avatar: string | null;
+  purchasedCount: number;
+}
+
 /**
  * Get revenue report data (Admin only)
  * Default period is "month" if not specified.
@@ -27,6 +35,21 @@ export const getRevenueData = async (period: RevenuePeriod = 'month'): Promise<R
     return response.data;
   } catch (error) {
     console.error('Error fetching revenue data:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all buyers for admin view.
+ */
+export const getBuyers = async (): Promise<Buyer[]> => {
+  try {
+    const response = await axios.get<Buyer[]>(`${url}/buyers`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching buyers:', error);
     throw error;
   }
 };

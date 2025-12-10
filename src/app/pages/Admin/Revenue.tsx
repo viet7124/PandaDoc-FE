@@ -1,21 +1,30 @@
-﻿import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "../../contexts/ToastContext";
-import { getRevenueData } from "./services/revenueAPI";
-import type { RevenueData, RevenuePeriod } from "./services/revenueAPI";
+import { getDashboardData } from "./services/dashboardAPI";
+import { getBuyers, getRevenueData } from "./services/revenueAPI";
+import type { Buyer, RevenueData, RevenuePeriod } from "./services/revenueAPI";
+import type { DashboardData } from "./services/dashboardAPI";
 
 export default function Revenue() {
   const toast = useToast();
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<RevenuePeriod>("month");
 
   const fetchRevenueData = useCallback(async (selectedPeriod: RevenuePeriod) => {
     try {
       setLoading(true);
-      const data = await getRevenueData(selectedPeriod);
-      console.log("Revenue API Response:", data);
-      console.log("Total Revenue:", data.totalRevenue);
-      setRevenueData(data);
+      const [revenueResponse, dashboardResponse, buyersResponse] = await Promise.all([
+        getRevenueData(selectedPeriod),
+        getDashboardData(),
+        getBuyers()
+      ]);
+
+      setRevenueData(revenueResponse);
+      setDashboardData(dashboardResponse);
+      setBuyers(buyersResponse);
     } catch (error) {
       console.error("Error fetching revenue data:", error);
       toast.error("Error Loading Revenue", "Failed to load revenue data");
@@ -61,7 +70,14 @@ export default function Revenue() {
 
   // Safely format revenue with default value
   const formattedRevenue = (revenueData.totalRevenue ?? 0).toLocaleString("en-US");
+  const totalBuyers = dashboardData?.totalBuyers ?? 0;
   const periodLabel: RevenuePeriod = revenueData.period || "month";
+
+  const sortedBuyers = useMemo(
+    () =>
+      [...buyers].sort((a, b) => b.purchasedCount - a.purchasedCount || a.username.localeCompare(b.username)),
+    [buyers]
+  );
 
   return (
     <div className="p-6 ml-10 bg-gray-50 min-h-screen">
@@ -117,16 +133,16 @@ export default function Revenue() {
           </div>
 
           <div className="border-t border-gray-200 pt-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Reporting Period</p>
-                  <p className="text-sm font-semibold text-gray-900 capitalize">{periodLabel}</p>
+                  <p className="text-xs text-gray-500">Total Buyers</p>
+                  <p className="text-sm font-semibold text-gray-900">{totalBuyers}</p>
                 </div>
               </div>
               
@@ -139,18 +155,6 @@ export default function Revenue() {
                 <div>
                   <p className="text-xs text-gray-500">Last Updated</p>
                   <p className="text-sm font-semibold text-gray-900">{new Date().toLocaleDateString("en-US")}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex itemsCenter justify-center">
-                  <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Status</p>
-                  <p className="text-sm font-semibold text-green-600">Active</p>
                 </div>
               </div>
             </div>
@@ -166,11 +170,68 @@ export default function Revenue() {
             <div>
               <p className="text-sm font-medium text-blue-900">Revenue Information</p>
               <p className="text-sm text-blue-700 mt-1">
-                Data shows total revenue for the period <span className="font-semibold">{getPeriodLabel(periodLabel)}</span>. 
-                Refresh the page to update with the latest data.
+                Data shows total revenue and total buyers. Refresh the page to update with the latest data.
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Buyers Table */}
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Buyers</h2>
+              <p className="text-sm text-gray-600">All buyers with their purchased templates count.</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Total buyers</p>
+              <p className="text-lg font-semibold text-gray-900">{totalBuyers}</p>
+            </div>
+          </div>
+
+          {sortedBuyers.length === 0 ? (
+            <div className="p-6 text-sm text-gray-600">No buyers found.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3 text-left">Buyer</th>
+                    <th className="px-6 py-3 text-left">Email</th>
+                    <th className="px-6 py-3 text-left">Purchased Templates</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedBuyers.map((buyer) => (
+                    <tr key={buyer.userId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {buyer.avatar ? (
+                              <img className="h-10 w-10 rounded-full" src={buyer.avatar} alt={buyer.username} />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                                {buyer.username.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{buyer.username}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{buyer.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-semibold text-gray-900">{buyer.purchasedCount}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

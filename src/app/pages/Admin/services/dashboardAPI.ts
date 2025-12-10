@@ -11,6 +11,12 @@ export interface DashboardData {
   rewardCosts: number;
   totalDownloads: number;
   totalTemplates: number;
+  totalUsers?: number;
+  totalBuyers?: number;
+  approvedTemplates?: number;
+  pendingTemplates?: number;
+  publishedTemplates?: number;
+  rejectedTemplates?: number;
 }
 
 /**

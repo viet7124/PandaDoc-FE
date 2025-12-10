@@ -206,7 +206,7 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="p-6 ml-10 bg-gray-50 min-h-screen">
+    <div className="p-6 ml-10 bg-gray-50 min-h-screen overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
