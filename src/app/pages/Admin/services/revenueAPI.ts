@@ -9,32 +9,24 @@ const url = `${normalizedBase}api/admin`;
 
 export type RevenuePeriod = 'week' | 'month' | 'quarter' | 'year';
 
-export interface AdminOrderItem {
-  templateId: number;
-  templateTitle: string;
-  price: number;
-}
-
-export interface AdminOrder {
-  id: number;
-  userId: number;
-  totalAmount: number;
-  createdAt: string;
-  status: string;
-  orderItems: AdminOrderItem[];
+export interface RevenueData {
+  period: RevenuePeriod;
+  totalRevenue: number;
 }
 
 /**
- * Get admin order history for revenue view.
+ * Get revenue report data (Admin only)
+ * Default period is "month" if not specified.
  */
-export const getAdminOrders = async (): Promise<AdminOrder[]> => {
+export const getRevenueData = async (period: RevenuePeriod = 'month'): Promise<RevenueData> => {
   try {
-    const response = await axios.get<AdminOrder[]>(`${url}/orders`, {
-      headers: getAuthHeaders()
+    const response = await axios.get<RevenueData>(`${url}/revenue`, {
+      headers: getAuthHeaders(),
+      params: { period }
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching admin orders:', error);
+    console.error('Error fetching revenue data:', error);
     throw error;
   }
 };

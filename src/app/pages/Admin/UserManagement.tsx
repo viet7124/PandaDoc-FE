@@ -318,26 +318,6 @@ export default function UserManagement() {
             >
               All
             </button>
-            <button
-              onClick={() => setStatusFilter('ACTIVE')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === 'ACTIVE'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setStatusFilter('INACTIVE')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                statusFilter === 'INACTIVE'
-                  ? 'bg-gray-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Inactive
-            </button>
           </div>
         </div>
       </div>
